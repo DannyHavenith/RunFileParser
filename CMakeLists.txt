@@ -16,7 +16,7 @@ FIND_PACKAGE( Boost COMPONENTS python serialization system)
 
 #include_directories( ${parse_logs_SOURCE_DIR})
 
-add_subdirectory (parse_logs)
+add_subdirectory (parse_log)
 
 
 
