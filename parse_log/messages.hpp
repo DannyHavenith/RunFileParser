@@ -10,28 +10,26 @@
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/joint_view.hpp>
+#include "message.hpp"
 
-template< int code, int size>
-struct message {};
-
-template< int code_begin, int code_end, int size>
-struct message_range {};
-
+namespace rtlogs
+{
 struct run_information  : message<1, 9>     { static const char *description() { return  "Run Information";}};
 struct run_start_stop   : message<2, 11>    { static const char *description() { return  "Run start/stop info";}};
-struct raw_gps          : message<3, -1>    { static const char *description() { return  "Raw GPS Data Input";}};
+struct raw_gps          : message<3, var>    { static const char *description() { return  "Raw GPS Data Input";}};
 struct new_sector_time  : message<4, 7>     { static const char *description() { return  "New Sector Time";}};
 struct new_lap_marker   : message<5, 21>    { static const char *description() { return  "New Lap Marker";}};
 struct logger_storage   : message<6, 6>     { static const char *description() { return  "Logger Storage Channel";}};
 struct gps_time_storage : message<7, 6>     { static const char *description() { return  "GPS Time Storage Channel";}};
 struct accelerations    : message<8, 6>     { static const char *description() { return  "Accelerations";}};
-struct timestamp        : message<9, 5>     { static const char *description() { return  "Time Stamp";}};
+struct timestamp        :
+    detailed_message< 9, unsigned_<3> >     { static const char *description() { return  "Time Stamp";}};
 struct gps_position     : message<10, 14>   { static const char *description() { return  "GPS Positional Data";}};
 struct gps_raw_speed    : message<11, 10>   { static const char *description() { return  "GPS Raw Speed Data";}};
 struct beacon_pulse_present : message<12, 3>{ static const char *description() { return  "Beacon Pulse Present";}};
 struct frequency1       : message<14, 5>    { static const char *description() { return  "Frequency 1";}};
 struct frequency5       : message<18, 5>    { static const char *description() { return  "Frequency 5";}};
-struct serial_data_input: message<19, -1>   { static const char *description() { return  "Serial Data Input";}};
+struct serial_data_input: message<19, var>   { static const char *description() { return  "Serial Data Input";}};
 struct analogue1        : message_range<20,52, 4>    { static const char *description() { return  "Analogue 1";}};
 struct channel_data     : message<52, 67>   { static const char *description() { return  "Channel Data Channel";}};
 struct display_data     : message<53, 11>   { static const char *description() { return  "Display Data Channel";}};
@@ -74,11 +72,11 @@ struct external_misc    : message<95, 5>    { static const char *description() {
 struct time_into_current_lap : message<96, 10>  { static const char *description() { return  "Time in to current lap and sector";}};
 struct high_res_timer   : message<97, 8>    { static const char *description() { return  "High resolution event timer";}};
 struct sector_definition: message<101, 19>  { static const char *description() { return  "Sector Definition Channel";}};
-struct brakebox_to_pc   : message<102, -1>  { static const char *description() { return  "BRAKEBOX to PC Communication Channel";}};
+struct brakebox_to_pc   : message<102, var>  { static const char *description() { return  "BRAKEBOX to PC Communication Channel";}};
 struct dvr_communication: message<103, 17>  { static const char *description() { return  "DVR Communication Channel";}};
 struct video_frame_index: message<104, 9>   { static const char *description() { return  "Video frame index";}};
 struct local_ned_velocities : message<105, 11>  { static const char *description() { return  "Local NED velocities";}};
-struct general_configuration : message<107, -1> { static const char *description() { return  "General Configuration Message";}};
+struct general_configuration : message<107, var> { static const char *description() { return  "General Configuration Message";}};
 
 typedef boost::mpl::vector<
     run_information ,
@@ -157,7 +155,7 @@ typedef boost::mpl::vector<
 using boost::mpl::joint_view;
 
 typedef joint_view< joint_view<commands1, commands2>, joint_view<commands3, commands4> > commands;
-
+}
 
 
 #endif /* MESSAGES_HPP_ */
