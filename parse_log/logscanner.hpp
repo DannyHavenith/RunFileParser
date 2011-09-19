@@ -132,8 +132,13 @@ namespace rtlogs
             virtual bool handle( reactor_type &r, iterator &i, iterator end)
             {
                 iterator begin = i;
+
+                // do_check will increase i to be one-beyond the end of the message
+                // if the check succeeds.
                 if (!do_check(i, end)) return false;
-                caller<message>::call( r, begin, end);
+
+                caller<message>::call( r, begin, i);
+
                 return true;
             }
         };
@@ -155,12 +160,13 @@ namespace rtlogs
                 table[T::header] = &handler<T>::instance();
             }
 
-            template< int header_begin, int header_end, int size>
-            void operator()( const message_range< header_begin, header_end, size>& ) const
+            template< typename T>
+            typename boost::enable_if< is_message_range<T> >::type
+            operator()( const T & ) const
             {
-                for ( int i = header_begin; i != header_end; ++i)
+                for ( int i = T::header_begin; i != T::header_end; ++i)
                 {
-                    table[i] = &handler< message_range< header_begin, header_end, size> >::instance();
+                    table[i] = &handler<T>::instance();
                 }
             }
 
