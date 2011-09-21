@@ -9,6 +9,8 @@ add_executable(
 
 	parse_log.cpp
 	)
+	
+target_link_libraries(parse_log ${Boost_LIBRARIES})	
 
 
 

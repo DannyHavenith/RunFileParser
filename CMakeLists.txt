@@ -12,7 +12,7 @@ add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 
 SET(Boost_USE_STATIC_LIBS OFF)
 SET(Boost_USE_MULTITHREAD ON)
-FIND_PACKAGE( Boost COMPONENTS python serialization system)
+FIND_PACKAGE( Boost COMPONENTS system filesystem)
 
 #include_directories( ${parse_logs_SOURCE_DIR})
 

@@ -8,6 +8,8 @@
 #include <boost/mpl/size.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/cstdint.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 #include <string>
 #include <iostream>
@@ -15,12 +17,85 @@
 #include <exception>
 #include <stdexcept>
 #include <vector>
+#include <algorithm>
 
 #include "messages.hpp"
 #include "logscanner.hpp"
 
 using namespace rtlogs;
 
+struct clean_file_writer
+{
+    clean_file_writer( const boost::filesystem::path &base)
+    :parent_path( base.parent_path()), base(basename(base)), extension( boost::filesystem::extension( base)),
+     last_timestamp(0)
+    {
+        file_suffix[0] = 'a';
+        file_suffix[1] = 0;
+
+        open_next_file();
+    }
+
+    template< typename message, typename iterator>
+    void handle( message, iterator begin, iterator end)
+    {
+        // write the packet to the current output file.
+        std::copy( begin, end, ostreambuf_iterator( output));
+    }
+
+    /**
+     * handle timer messages. When the timestamp makes a large jump, or becomes lower than the previous value,
+     * a new file is opened and output will be delegated to that file.
+     */
+    template< typename iterator>
+    void handle( timestamp, iterator begin, iterator end)
+    {
+        iterator current = begin;
+        ++current;
+        unsigned long time_value = *current++;
+        time_value = (time_value << 8) + * current++;
+        time_value = (time_value << 8) + * current++;
+
+        if (last_timestamp && (last_timestamp > time_value || time_value - last_timestamp > 5000))
+        {
+            open_next_file();
+        }
+
+        // write the packet to the current output file.
+        std::copy( begin, end, ostreambuf_iterator( output));
+
+        last_timestamp = time_value;
+    }
+
+private:
+
+    /**
+     * open a new output file. Files will be typically named "<inputfilebase>'a'.<inputfileext>", "<inputfilebase>'b'.<inputfileext>", etc.
+     */
+    void open_next_file()
+    {
+        if (output.is_open())
+        {
+            output.close();
+        }
+        std::cerr << parent_path / (base + file_suffix + extension)  << '\n';
+        output.open(  parent_path / (base + file_suffix + extension) , std::ios::binary);
+        if (!output.is_open())
+        {
+            throw std::runtime_error("could not open output file");
+        }
+        ++file_suffix[0];
+    }
+
+    typedef std::ostreambuf_iterator<char> ostreambuf_iterator;
+
+    const boost::filesystem::path parent_path;
+    const std::string           base;
+    char                        file_suffix[2];
+    const std::string           extension;
+    boost::filesystem::ofstream output;
+    unsigned long               last_timestamp;
+};
 /**
  * This class handles timestamp messages only. It prints the timestamp for every unique timestamp it receives, together
  * with a count of how often that same value was encountered.
@@ -208,6 +283,15 @@ int main(int argc, char* argv[])
             {
                 text_printer printer( cout);
                 scan_log( printer, buffer.begin(), buffer.end());
+            }
+            else if (argv[2] == string("clean"))
+            {
+                clean_file_writer writer( argv[1]);
+                scan_log( writer, buffer.begin(), buffer.end());
+            }
+            else
+            {
+                std::cerr << "could not interpret command: " << argv[2] << "\n";
             }
         }
         else
