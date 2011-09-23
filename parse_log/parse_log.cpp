@@ -21,19 +21,30 @@
 
 #include "messages.hpp"
 #include "logscanner.hpp"
+#include "parse_error.hpp"
 
 using namespace rtlogs;
 
+/**
+ * This class simply writes all correctly parsed messages to a file. If there are jumps in the timestamp message
+ * larger than some constant (5000), a new file will be opened and subsequent messages will be written to that new file.
+ */
 struct clean_file_writer
 {
     clean_file_writer( const boost::filesystem::path &base)
     :parent_path( base.parent_path()), base(basename(base)), extension( boost::filesystem::extension( base)),
      last_timestamp(0)
     {
-        file_suffix[0] = 'a';
-        file_suffix[1] = 0;
+        filename_suffix[0] = 'a';
+        filename_suffix[1] = 0;
 
         open_next_file();
+    }
+
+    template<typename iterator>
+    void handle( parse_error, iterator begin, iterator end)
+    {
+        // do nothing with unparsable bytes.
     }
 
     template< typename message, typename iterator>
@@ -70,7 +81,8 @@ struct clean_file_writer
 private:
 
     /**
-     * open a new output file. Files will be typically named "<inputfilebase>'a'.<inputfileext>", "<inputfilebase>'b'.<inputfileext>", etc.
+     * open a new output file. Files will be typically named "<inputfilebase>'a'.<inputfileext>", "<inputfilebase>'b'.<inputfileext>", etc.,
+     * and be placed in the same directory as the input file (whose name was provided as a constructor argument).
      */
     void open_next_file()
     {
@@ -78,24 +90,25 @@ private:
         {
             output.close();
         }
-        std::cerr << parent_path / (base + file_suffix + extension)  << '\n';
-        output.open(  parent_path / (base + file_suffix + extension) , std::ios::binary);
+        std::cerr << parent_path / (base + filename_suffix + extension)  << '\n';
+        output.open(  parent_path / (base + filename_suffix + extension) , std::ios::binary);
         if (!output.is_open())
         {
             throw std::runtime_error("could not open output file");
         }
-        ++file_suffix[0];
+        ++filename_suffix[0];
     }
 
     typedef std::ostreambuf_iterator<char> ostreambuf_iterator;
 
     const boost::filesystem::path parent_path;
     const std::string           base;
-    char                        file_suffix[2];
+    char                        filename_suffix[2];
     const std::string           extension;
     boost::filesystem::ofstream output;
     unsigned long               last_timestamp;
 };
+
 /**
  * This class handles timestamp messages only. It prints the timestamp for every unique timestamp it receives, together
  * with a count of how often that same value was encountered.
@@ -149,6 +162,9 @@ private:
     unsigned long first_timestamp;
 };
 
+/**
+ * This class writes the message out in a csv-format (tab-separated, actually).
+ */
 struct text_printer
 {
     text_printer( std::ostream &out)
@@ -170,6 +186,10 @@ private:
     std::ostream &out;
 };
 
+/**
+ * This class handles gps_position messages only and will output a kml (google earth-) formatted
+ * text containing a single trace of those gps_position messages.
+ */
 struct kml_writer
 {
     kml_writer( std::ostream &out)
@@ -179,6 +199,9 @@ struct kml_writer
         out.precision(8);
     }
 
+    /**
+     * ignore all messages that are not of type gps_position
+     */
     void handle(...){};
 
     template< typename iterator>
