@@ -50,14 +50,15 @@ namespace rtlogs
                 if (!table[*begin]->handle( reactor, begin, end))
                 {
                     iterator start_of_garbage = begin;
+                    iterator end_of_garbage = begin;
                     ++begin;
                     while ( begin != end && !table[*begin]->handle( reactor, begin, end))
                     {
-                        ++begin;
+                        end_of_garbage = ++begin;
                     }
 
                     // tell the handler where the unreadable bytes are.
-                    reactor.handle(  parse_error(), start_of_garbage, begin);
+                    reactor.handle(  parse_error(), start_of_garbage, end_of_garbage);
                 }
             }
         }
@@ -272,7 +273,7 @@ namespace rtlogs
         void fill_handler_table( )
         {
             std::fill( table, table + 256, &null_handler::instance());
-            boost::fusion::for_each( commands(), cell_filler(table));
+            boost::fusion::for_each( messages_definition::list(), cell_filler(table));
         }
 
         table_type      table;

@@ -23,245 +23,13 @@
 #include "logscanner.hpp"
 #include "parse_error.hpp"
 
+#include "clean_file_writer.hpp"
+#include "timestamp_printer.hpp"
+#include "histogram_counter.hpp"
+#include "kml_writer.hpp"
+#include "text_printer.hpp"
+
 using namespace rtlogs;
-
-/**
- * This class simply writes all correctly parsed messages to a file. If there are jumps in the timestamp message
- * larger than some constant (5000), a new file will be opened and subsequent messages will be written to that new file.
- */
-struct clean_file_writer
-{
-    clean_file_writer( const boost::filesystem::path &base)
-    :parent_path( base.parent_path()), base(basename(base)), extension( boost::filesystem::extension( base)),
-     last_timestamp(0)
-    {
-        filename_suffix[0] = 'a';
-        filename_suffix[1] = 0;
-
-        open_next_file();
-    }
-
-    template<typename iterator>
-    void handle( parse_error, iterator begin, iterator end)
-    {
-        // do nothing with unparsable bytes.
-    }
-
-    template< typename message, typename iterator>
-    void handle( message, iterator begin, iterator end)
-    {
-        // write the packet to the current output file.
-        std::copy( begin, end, ostreambuf_iterator( output));
-    }
-
-    /**
-     * handle timer messages. When the timestamp makes a large jump, or becomes lower than the previous value,
-     * a new file is opened and output will be delegated to that file.
-     */
-    template< typename iterator>
-    void handle( timestamp, iterator begin, iterator end)
-    {
-        iterator current = begin;
-        ++current;
-        unsigned long time_value = *current++;
-        time_value = (time_value << 8) + * current++;
-        time_value = (time_value << 8) + * current++;
-
-        if (last_timestamp && (last_timestamp > time_value || time_value - last_timestamp > 5000))
-        {
-            open_next_file();
-        }
-
-        // write the packet to the current output file.
-        std::copy( begin, end, ostreambuf_iterator( output));
-
-        last_timestamp = time_value;
-    }
-
-private:
-
-    /**
-     * open a new output file. Files will be typically named "<inputfilebase>'a'.<inputfileext>", "<inputfilebase>'b'.<inputfileext>", etc.,
-     * and be placed in the same directory as the input file (whose name was provided as a constructor argument).
-     */
-    void open_next_file()
-    {
-        if (output.is_open())
-        {
-            output.close();
-        }
-        std::cerr << parent_path / (base + filename_suffix + extension)  << '\n';
-        output.open(  parent_path / (base + filename_suffix + extension) , std::ios::binary);
-        if (!output.is_open())
-        {
-            throw std::runtime_error("could not open output file");
-        }
-        ++filename_suffix[0];
-    }
-
-    typedef std::ostreambuf_iterator<char> ostreambuf_iterator;
-
-    const boost::filesystem::path parent_path;
-    const std::string           base;
-    char                        filename_suffix[2];
-    const std::string           extension;
-    boost::filesystem::ofstream output;
-    unsigned long               last_timestamp;
-};
-
-/**
- * This class handles timestamp messages only. It prints the timestamp for every unique timestamp it receives, together
- * with a count of how often that same value was encountered.
- */
-struct timestamp_printer
-{
-    timestamp_printer( std::ostream &out)
-        :out( out), last_timestamp(0), timestamp_count(0),  first_timestamp(0){};
-
-    /// do nothing with most messages.
-    void handle( ...)
-    {
-    };
-
-    template< typename iterator>
-    void handle( timestamp, iterator begin, iterator end)
-    {
-        ++begin;
-        unsigned long result = *begin++;
-        result = (result << 8) + * begin++;
-        result = (result << 8) + * begin++;
-        if (result == last_timestamp)
-        {
-            ++timestamp_count;
-        }
-        else
-        {
-            if (first_timestamp == 0)
-            {
-                first_timestamp = result;
-            }
-
-            out << '\t' << timestamp_count << '\t' << result - last_timestamp << '\n';
-            last_timestamp = result;
-            timestamp_count = 1;
-            out << result;
-        }
-    }
-
-    void flush()
-    {
-        out << '\t' << timestamp_count << '\n';
-        out << "time span: " << last_timestamp - first_timestamp << '\n';
-    }
-
-private:
-    std::ostream &out;
-
-    unsigned long last_timestamp;
-    unsigned long timestamp_count;
-    unsigned long first_timestamp;
-};
-
-/**
- * This class writes the message out in a csv-format (tab-separated, actually).
- */
-struct text_printer
-{
-    text_printer( std::ostream &out)
-    :out(out) {}
-
-    template< typename message_type, typename iterator>
-    void handle( message_type, iterator begin, iterator end)
-    {
-        out << message_type::description();
-        while (begin != end)
-        {
-            out << '\t' << (int)*begin;
-            ++begin;
-        }
-        out << '\n';
-    }
-
-private:
-    std::ostream &out;
-};
-
-/**
- * This class handles gps_position messages only and will output a kml (google earth-) formatted
- * text containing a single trace of those gps_position messages.
- */
-struct kml_writer
-{
-    kml_writer( std::ostream &out)
-       :out(out)
-    {
-        out << prolog();
-        out.precision(8);
-    }
-
-    /**
-     * ignore all messages that are not of type gps_position
-     */
-    void handle(...){};
-
-    template< typename iterator>
-    void handle( gps_position, iterator begin, iterator end)
-    {
-        ++begin;
-
-        typedef boost::int32_t long_type;
-        long_type longitude = *begin++;
-        longitude = (longitude << 8) + *begin++;
-        longitude = (longitude << 8) + *begin++;
-        longitude = (longitude << 8) + *begin++;
-        double longitude_double = longitude/10000000.0;
-
-        long_type lattitude = *begin++;
-        lattitude = (lattitude << 8) + *begin++;
-        lattitude = (lattitude << 8) + *begin++;
-        lattitude = (lattitude << 8) + *begin++;
-        double lattitude_double = lattitude/10000000.0;
-
-        out <<  "        " << longitude_double << ',' << lattitude_double << ",0.0\n";
-    }
-
-    ~kml_writer()
-    {
-        out << epilog();
-    }
-
-private:
-    static const char *prolog()
-    {
-        return
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            "<kml xmlns=\"http://earth.google.com/kml/2.2\">\n"
-            "<Placemark>\n"
-            "    <name>Path255</name>\n"
-            "    <Style>\n"
-            "        <LineStyle>\n"
-            "            <color>ff0000ff</color>\n"
-            "            <width>3.1</width>\n"
-            "        </LineStyle>\n"
-            "    </Style>\n"
-            "    <LineString>\n"
-            "        <tessellate>1</tessellate>\n"
-            "        <coordinates>\n"
-            ;
-    }
-
-    static const char *epilog()
-    {
-        return
-            "        </coordinates>\n"
-            "    </LineString>\n"
-            "</Placemark>\n"
-            "</kml>\n"
-            ;
-    }
-
-    std::ostream &out;
-};
 
 void error( const std::string &what)
 {
@@ -311,6 +79,12 @@ int main(int argc, char* argv[])
             {
                 clean_file_writer writer( argv[1]);
                 scan_log( writer, buffer.begin(), buffer.end());
+            }
+            else if (argv[2] == string("histogram"))
+            {
+                histogram_counter counter;
+                scan_log( counter, buffer.begin(), buffer.end());
+                counter.output( std::cout);
             }
             else
             {
