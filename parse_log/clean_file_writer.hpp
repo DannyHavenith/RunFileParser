@@ -34,6 +34,9 @@ struct clean_file_writer : public rtlogs::messages_definition
         // do nothing with unparsable bytes.
     }
 
+    template< typename iterator>
+    void handle( raw_gps, iterator, iterator) {} // ignore.
+
     template< typename message, typename iterator>
     void handle( message, iterator begin, iterator end)
     {
@@ -56,6 +59,7 @@ struct clean_file_writer : public rtlogs::messages_definition
 
         if (last_timestamp && (last_timestamp > time_value || time_value - last_timestamp > 5000))
         {
+            std::cerr << "jump: " << last_timestamp << " -> " << time_value << '\n';
             open_next_file();
         }
 

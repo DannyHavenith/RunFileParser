@@ -28,6 +28,7 @@
 #include "histogram_counter.hpp"
 #include "kml_writer.hpp"
 #include "text_printer.hpp"
+#include "analogue_channel_table.hpp"
 
 using namespace rtlogs;
 
@@ -85,6 +86,13 @@ int main(int argc, char* argv[])
                 histogram_counter counter;
                 scan_log( counter, buffer.begin(), buffer.end());
                 counter.output( std::cout);
+            }
+            else if (argv[2] == string("values"))
+            {
+                analogue_channel_table table(std::cout) ;
+                scan_log( table, buffer.begin(), buffer.end());
+                table.set_scanning(false);
+                scan_log( table, buffer.begin(), buffer.end());
             }
             else
             {
