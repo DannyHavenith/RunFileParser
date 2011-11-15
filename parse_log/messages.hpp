@@ -30,8 +30,7 @@ struct messages_definition
     struct gps_position     : message<10, 14>   { static const char *description() { return  "GPS Positional Data";}};
     struct gps_raw_speed    : message<11, 10>   { static const char *description() { return  "GPS Raw Speed Data";}};
     struct beacon_pulse_present : message<12, 3>{ static const char *description() { return  "Beacon Pulse Present";}};
-    struct frequency1       : message<14, 5>    { static const char *description() { return  "Frequency 1";}};
-    struct frequency5       : message<18, 5>    { static const char *description() { return  "Frequency 5";}};
+    struct frequency       : message_range<14, 19, 5>    { static const char *description() { return  "Frequency";}};
     struct serial_data_input: message<19, var>   { static const char *description() { return  "Serial Data Input";}};
     struct analogue1        : message_range<20,52, 4>    { static const char *description() { return  "Analogue 1";}};
     struct channel_data     : message<52, 67>   { static const char *description() { return  "Channel Data Channel";}};
@@ -94,8 +93,7 @@ struct messages_definition
             gps_position        ,
             gps_raw_speed   ,
             beacon_pulse_present ,
-            frequency1      ,
-            frequency5      ,
+            frequency      ,
             serial_data_input,
             analogue1       ,
             channel_data        ,
