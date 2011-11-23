@@ -10,8 +10,10 @@
 
 #include <map>
 #include <algorithm>
+#include <utility> // for std::pair, std::make_pair
 #include <boost/lambda/lambda.hpp>
 #include <boost/lambda/bind.hpp>
+#include <boost/cstdint.hpp>
 #include "messages.hpp"
 
 class analogue_channel_table : public rtlogs::messages_definition
@@ -31,7 +33,12 @@ public:
         if (!scanning)
         {
             output << "timestamp\tchanged\t";
-            std::for_each( values.begin(), values.end(), output << bind( &pair_type::first, _1) << '\t' );
+
+            for (map_type::const_iterator header = values.begin(); header != values.end(); ++ header)
+            {
+                output << header->first.first << ':' << header->first.second << '\t';
+            }
+
             std::for_each( values.begin(), values.end(), bind( &pair_type::second, _1) = 0.0);
             output << '\n';
             last_timestamp = 0;
@@ -53,58 +60,97 @@ public:
         last_timestamp = result;
     }
 
+    /**
+     * Analogue messages each contain one big-endian, fixed point (/1000) unsigned integer of 16 bits
+     */
     template<typename iterator>
     void handle( analogue1, iterator begin, iterator end)
     {
-        const unsigned short index = *begin++ - 20;
-        double value = *begin++ * 256;
-        value += *begin;
-        value /= 1000;
+        const unsigned short header = *begin++;
+        const key_type p = std::make_pair( header, 0);
 
-        values[index] = value;
-        emit_values( index);
+        boost::uint16_t value = ((boost::uint16_t)*begin++) << 8;
+        value |= *begin ;
+
+        new_value( p, ((double)value) / 1000.0);
     }
 
-    template<typename iterator>
-    void handle( extended_frequency1, iterator begin, iterator end)
-    {
-        const unsigned short index = *begin++ - 58 + 32;
-        double value = *begin++ * 256;
-        value += *begin;
-        value /= 1000;
-
-        values[index] = value;
-        emit_values( index);
-    }
-
+    /**
+     * External temperature messages contain multiplexed little-endian,
+     * fixed point (/10) signed integers of 16 bits
+     */
     template<typename iterator>
     void handle( external_temperature, iterator begin, iterator end)
     {
-        ++begin;
-        const unsigned short index = *begin++ + 36;
-        short value = *begin++;
-        value += *begin * 256;
+        const unsigned short header = *begin++;
+        const unsigned short index = *begin++;
+        const key_type p = std::make_pair( header, index);
 
+        boost::int16_t value = *begin++;
+        value |= *begin * 256;
 
-        values[index] = ((double)value) / 10.0;
-        emit_values( index);
+        new_value( p, ((double)value) / 10.0);
     }
 
-    void emit_values( unsigned short index_changed)
+    /**
+     * External percentage messages contain multiplexed little-endian,
+     * fixed point (/10) signed integers of 16 bits
+     */
+    template<typename iterator>
+    void handle( external_percentage, iterator begin, iterator end)
+    {
+        // it's just like external_temperature
+        handle( external_temperature(), begin, end);
+    }
+
+    /**
+     * External temperature contain multiplexed little-endian, fixed point (/10) unsigned integers of 16 bits
+     */
+    template<typename iterator>
+    void handle( external_frequency, iterator begin, iterator end)
+    {
+        const unsigned short header = *begin++;
+        const unsigned short index = *begin++;
+        const key_type p = std::make_pair( header, index);
+
+        boost::uint16_t value = *begin++;
+        value += *begin * 256;
+        new_value( p, ((double)value)/10.0);
+    }
+
+    /**
+     * External misc contains multiplexed little-endian, fixed point (/10) unsigned integers of 16 bits.
+     */
+    template<typename iterator>
+    void handle( external_misc, iterator begin, iterator end)
+    {
+        // it's just the same as external_frequency
+        handle( external_frequency(), begin, end);
+    }
+
+
+
+
+private:
+    typedef std::pair< unsigned short, unsigned short> key_type;
+    void emit_values( const key_type &changed)
     {
         if (!scanning)
         {
             using boost::lambda::_1;
             using boost::lambda::bind;
 
-            output << last_timestamp << '\t' << index_changed << '\t';
+            output << last_timestamp << '\t' << changed.first << ':' << changed.second << '\t';
             std::for_each( values.begin(), values.end(), output << bind( &pair_type::second, _1) << '\t');
             output << '\n';
         }
     }
-
-private:
-    typedef std::map<int, double> map_type;
+    void new_value( const key_type &key, double value)
+    {
+        values[key] = value;
+        emit_values( key);
+    }
+    typedef std::map<key_type, double> map_type;
     typedef map_type::value_type  pair_type;
 
     map_type       values;
