@@ -44,9 +44,14 @@ namespace rtlogs
     template< typename T, typename enable = void>
     struct is_message_range : mpl::false_ {};
 
+    /// if type T has an embedded type 'i_am_a_message_range', then specialization of the
+    /// meta function will return true
+    /// partially specializing on message_range<int, int, int> did not work for some reason on g++.
     template< typename T>
     struct is_message_range< T, typename T::i_am_a_message_range> : mpl::true_ {};
 
+    ///
+    /// place holder for unused members of detailed_message.
     struct nothing
     {
         static const int size = 0;
@@ -57,6 +62,13 @@ namespace rtlogs
     {
         static const size_t size = bytes;
         typedef unsigned long value_type;
+    };
+
+    template<in bytes>
+    struct signed_
+    {
+        static const size_t size = bytes;
+        typedef long value_type;
     };
 
     template< typename T>

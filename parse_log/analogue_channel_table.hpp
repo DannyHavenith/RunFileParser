@@ -24,6 +24,18 @@ public:
     {
     }
 
+    /**
+     * Set this object in scanning mode, or in non-scanning mode.
+     *
+     * Objects of this class are are offered events of a log twice: the first time, while the object
+     * is in scanning mode. The second time, actual output will be generated.
+     *
+     * After construction, objects of this class are in scanning mode. This means that
+     * when input is offered, no output is generated, but an internal table of all encountered event
+     * types is built. This table is necessary to output all data in their proper column when this class
+     * is used in non-scanning mode.
+     *
+    */
     void set_scanning( bool new_scanning)
     {
         using boost::lambda::bind;
