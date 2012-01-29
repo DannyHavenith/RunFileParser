@@ -29,6 +29,8 @@
 #include "kml_writer.hpp"
 #include "text_printer.hpp"
 #include "analogue_channel_table.hpp"
+#include "timestamp_reporter.hpp"
+#include "gps_time_printer.hpp"
 
 using namespace rtlogs;
 
@@ -93,6 +95,16 @@ int main(int argc, char* argv[])
                 scan_log( table, buffer.begin(), buffer.end());
                 table.set_scanning(false);
                 scan_log( table, buffer.begin(), buffer.end());
+            }
+            else if (argv[2] == string("report"))
+            {
+                timestamp_reporter reporter( std::cout);
+                scan_log( reporter, buffer.begin(), buffer.end());
+            }
+            else if (argv[2] == string("gpstime"))
+            {
+                gps_timestamp_printer printer( std::cout);
+                scan_log( printer, buffer.begin(), buffer.end());
             }
             else
             {

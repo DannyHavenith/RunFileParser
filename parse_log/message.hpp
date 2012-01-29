@@ -64,7 +64,7 @@ namespace rtlogs
         typedef unsigned long value_type;
     };
 
-    template<in bytes>
+    template<int bytes>
     struct signed_
     {
         static const size_t size = bytes;

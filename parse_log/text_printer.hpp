@@ -17,6 +17,32 @@ struct text_printer : public rtlogs::messages_definition
     text_printer( std::ostream &out)
     :out(out) {}
 
+    template< typename iterator>
+    void handle( timestamp, iterator begin, iterator end)
+    {
+        out << timestamp::description();
+
+        out << '\t' << (int)*begin; // header
+        ++begin;
+
+        out << '\t' << (int)*begin; // value 1
+        unsigned long value = *begin;
+        ++begin;
+
+        out << '\t' << (int)*begin; // value 2
+        value = (value << 8) + *begin;
+        ++begin;
+
+        out << '\t' << (int)*begin; // value 3
+        value = (value << 8) + *begin;
+        ++begin;
+
+        out << '\t' << (int)*begin; // checksum
+
+        out << "\t(" << value << ")\n";
+
+    }
+
     template< typename message_type, typename iterator>
     void handle( message_type, iterator begin, iterator end)
     {
