@@ -16,6 +16,9 @@ namespace rtlogs
 {
 using boost::mpl::joint_view;
 
+/// This struct type contains a huge list of struct typedefs where each struct represents a known rtlog message type.
+/// All structs derive from the message<header, size> template and use that to encode information about each message.
+/// Additionally, this struct contains an embedded typedef, called list, that is an mpl sequence of all the structs.
 struct messages_definition
 {
     struct run_information  : message<1, 9>     { static const char *description() { return  "Run Information";}};
