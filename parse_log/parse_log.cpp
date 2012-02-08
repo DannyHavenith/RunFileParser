@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
             }
             else if (argv[2] == string("gpstime"))
             {
-                gps_timestamp_printer printer( std::cout);
+                gps_timestamp_printer printer( std::cout, std::cerr, argv[1]);
                 scan_log( printer, buffer.begin(), buffer.end());
             }
             else
