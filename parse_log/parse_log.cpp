@@ -31,6 +31,7 @@
 #include "analogue_channel_table.hpp"
 #include "timestamp_reporter.hpp"
 #include "gps_time_printer.hpp"
+#include "timestamp_correction.hpp"
 
 using namespace rtlogs;
 
@@ -105,6 +106,24 @@ int main(int argc, char* argv[])
             {
                 gps_timestamp_printer printer( std::cout, std::cerr, argv[1]);
                 scan_log( printer, buffer.begin(), buffer.end());
+            }
+            else if (argv[2] == string("correct"))
+            {
+                using namespace boost::filesystem;
+                path base;
+                if (argc>3)
+                {
+                    base = path(argv[3]);
+                }
+                else
+                {
+                    base = path( argv[1]).parent_path() / "corrected";
+                }
+                create_directories( base);
+                path output_path = base / path( argv[1]).filename();
+                boost::filesystem::ofstream outputstream( output_path);
+                timestamp_correction::time_correction corrector( outputstream);
+                scan_log( corrector, buffer.begin(), buffer.end());
             }
             else
             {

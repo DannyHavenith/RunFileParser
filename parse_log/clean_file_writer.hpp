@@ -11,6 +11,7 @@
 #include <boost/filesystem.hpp>
 #include "messages.hpp"
 #include "parse_error.hpp"
+#include "bytes_to_numbers.hpp"
 
 /**
  * This class simply writes all correctly parsed messages to a file. If there are jumps in the timestamp message
@@ -53,9 +54,7 @@ struct clean_file_writer : public rtlogs::messages_definition
     {
         iterator current = begin;
         ++current;
-        unsigned long time_value = *current++;
-        time_value = (time_value << 8) + * current++;
-        time_value = (time_value << 8) + * current++;
+        unsigned long time_value = bytes_to_numbers::get_big_endian<3, unsigned long>( current);
 
         if (last_timestamp && (last_timestamp > time_value || time_value - last_timestamp > 5000))
         {
