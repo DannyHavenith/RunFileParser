@@ -31,12 +31,27 @@ namespace timestamp_correction
  * and a skew value. Strictly speaking only one pivot is necessary, but specifying two pivots
  * makes the definition more intuitive.
  *
- * The idea is that time stamp values describe a linear slope that passes through a pivot point.
- * This class will change the values, multiplying the slope with a skew rate and 'shifting' the
+ * The idea is that time stamp values describe a straight line that passes through a pivot point.
+ * This class will multiply the values with a skew rate to change the slope and 'shift' the
  * pivot point up or down to a new 'corrected' pivot.
  *
- * This class can only perform one linear correction on a range of time stamp values. Objects of
- * this class are used by the time_stamp_correcter class to correct ranges of
+ * <pre>
+ *                   ++  corrected slope
+ *                 ++
+ *               ++
+ *             ++
+ *   cpivot->*+            xxxx  original slope
+ *         ++^         xxxx
+ *       ++  |     xxxx
+ *     ++    | xxxx
+ *         xx*x
+ *           ^
+ *           pivot
+ * </pre>
+ * This class can only perform one linear correction on a range of time stamp values. It can only be used
+ * with the same settings in regions where relation between the old and corrected time stamps is linear.
+ * The time_stamp_correcter class cuts the data streams into segments where this relation is indeed linear and
+ * programs an object of this slope correction class accordingly.
  */
 class slope_correction  : public rtlogs::messages_definition
 {
@@ -119,6 +134,17 @@ private:
  * This class receives GPS (G) and TS (T) events (GPS time channel or Time Stamp). It tries to find
  * a succession T G T, where the time stamp value of the two T events are very close. This means that
  * the value of the G event can be correlated with the value of the first T event.
+ *
+ * The state machine implemented by this class looks like this:
+ *
+ * <pre>
+ *     +-gps-+             +-time-+
+ *     v     |             v      |
+ *  (searching) --time--> (ts_found) --------gps--> (gps_found) --time[timestamps_close]--> (exit)
+ *      ^                   ^                          |   |
+ *      |                   +-time[~timestamps_close]--+   |
+ *      +-----------------------------------gps----------- +
+ * </pre>
  */
 struct wedge_finder_ : public boost::msm::front::state_machine_def<wedge_finder_>
 {
@@ -146,23 +172,12 @@ struct wedge_finder_ : public boost::msm::front::state_machine_def<wedge_finder_
     //**********
     struct searching :  boost::msm::front::state<>
     {
-        template<typename event, typename fsm>
-        void on_entry( const event &, const fsm &)
-        { std::cout << "entering searching state\n";}
-
-        template<typename event, typename fsm>
-        void on_exit( const event &, const fsm &)
-        { std::cout << "leaving searching state\n";}
     };
     struct ts_found  :  boost::msm::front::state<>
     {
-        template<typename event, typename FSM>
-        void on_entry( const event &, const FSM &)
-        { std::cout << "entering ts_found state\n";};
 
-        template<typename event, typename fsm>
-        void on_exit( const event &, const fsm &)
-        { std::cout << "leaving ts_found state\n";}
+        template< typename Event, typename FSM>
+        void on_entry( const Event&, const FSM &) {}
 
         template<typename FSM>
         void on_entry( const time_ev &time, FSM &fsm)
@@ -173,24 +188,12 @@ struct wedge_finder_ : public boost::msm::front::state_machine_def<wedge_finder_
     // this is an exit pseudo state that emits a 'time' event while exiting.
     struct exit : boost::msm::front::exit_pseudo_state<time_ev>
     {
-        template<typename event, typename FSM>
-        void on_entry( const event &, const FSM &)
-        { std::cout << "entering exit state\n";};
-
-        template<typename event, typename fsm>
-        void on_exit( const event &, const fsm &)
-        { std::cout << "leaving exit state\n";}
-
     };
     struct gps_found :  boost::msm::front::state<>
     {
-        template<typename event, typename FSM>
-        void on_entry( const event &, const FSM &)
-        { std::cout << "entering gps_found state\n";};
 
-        template<typename event, typename fsm>
-        void on_exit( const event &, const fsm &)
-        { std::cout << "leaving gps_found state\n";}
+        template< typename Event, typename FSM>
+        void on_entry( const Event&, const FSM &) {}
 
         template<typename FSM>
         void on_entry( const gps_ev &gps_time, FSM &fsm )
@@ -198,6 +201,7 @@ struct wedge_finder_ : public boost::msm::front::state_machine_def<wedge_finder_
             fsm.last_gps_time = gps_time.value;
         }
     };
+
     typedef searching initial_state;
 
     /// is the given time events value close to that of the previously offered time event?
@@ -211,14 +215,14 @@ struct wedge_finder_ : public boost::msm::front::state_machine_def<wedge_finder_
     //**********
     typedef wedge_finder_ wf;
     struct transition_table : boost::mpl::vector<
-    //       Start      Event          Next       Action               Guard
-    //   +-----------+--------------+-----------+---------------------+----------------------+
+    //       Start      Event           Next       Action               Guard
+    //   +-----------+-----------------+-----------+---------------------+----------------------+
      _row< searching , time_ev         , ts_found                                               >,
      _row< searching , gps_ev          , searching                                              >,
      _row< ts_found  , time_ev         , ts_found                                               >,
      _row< ts_found  , gps_ev          , gps_found                                              >,
      _row< gps_found , gps_ev          , searching                                              >,
-     _row< gps_found , time_ev         , searching                                              >,
+     _row< gps_found , time_ev         , ts_found                                               >,
     g_row< gps_found , time_ev         , exit      ,                       &wf::timestamps_close>
     >{};
 
@@ -229,7 +233,8 @@ struct wedge_finder_ : public boost::msm::front::state_machine_def<wedge_finder_
     unsigned long           last_gps_time;
 };
 
-typedef boost::msm::back::state_machine<wedge_finder_> wedge_finder;
+
+
 
 /**
  * The time correction state machine.
@@ -237,7 +242,7 @@ typedef boost::msm::back::state_machine<wedge_finder_> wedge_finder;
  * This class describes a state machine that consists of two states, each sub-state machines of type wedge_finder.
  * The first state is the initial state, which is active as long as no TGT-wedge has been found (@see wedge_finder_).
  *
- * After the first wedge has been found, this machine remains in the searching state, transitioning back to the searching
+ * After the first wedge has been found, this machine remains in the searching state, returning to the searching
  * state with each wedge found. Whenever a wedge is found, the embedded slop correction object is configured and all message are flushed to
  * its output stream.
  *
@@ -251,6 +256,10 @@ public:
 
     }
 
+    /**
+     * Flush all buffered data after reprogramming the time stamp correction based on the given
+     * time stamp and gps time values.
+     */
     void flush(unsigned long  timestamp, unsigned long  gps_time)
     {
         unsigned long corrected_timestamp = ((previous_gps_time - first_gps_time) / gps_timestamp_ratio) + first_timestamp;
@@ -267,12 +276,18 @@ public:
     }
 
 
+    /**
+     * Flush all bytes in the buffer, using the last known good settings for time correction
+     */
     void final_flush()
     {
         correction.set_allowed_range( 0);
         flush();
     }
 
+    /**
+     * Send all bytes in the buffer to the time stamp correction class.
+     */
     void flush()
     {
         scan_log(correction, buffer.begin(), buffer.end());
@@ -280,6 +295,9 @@ public:
     }
 
 
+    /**
+     * This function is called when the first time stamp/gps time pair is found.
+     */
     void store_first_timestamp(unsigned long  timestamp, unsigned long  gps_time)
     {
         first_timestamp = previous_timestamp = timestamp;
@@ -287,6 +305,7 @@ public:
     }
 
 
+    /// add a range of bytes to the buffer.
     template<typename iterator>
     void add_to_buffer( iterator begin, iterator end)
     {
@@ -294,55 +313,46 @@ public:
     }
 
 
-    typedef wedge_finder::gps_ev gps;
-    typedef wedge_finder::time_ev time;
-    struct initial : public wedge_finder
+    typedef wedge_finder_::gps_ev gps_ev;
+    typedef wedge_finder_::time_ev time_ev;
+    struct initial_ : public wedge_finder_
     {
-        template<typename event, typename FSM>
-        void on_entry( const event &, const FSM &)
-        { std::cout << "entering initial state\n";};
-
-        template<typename event, typename fsm>
-        void on_exit( const event &, const fsm &)
-        { std::cout << "leaving initial state\n";}
 
         template< typename FSM>
-        void on_exit(const time & t, FSM &fsm)
+        void on_exit(const time_ev & t, FSM &fsm)
         {
             fsm.store_first_timestamp(last_timestamp, last_gps_time);
         }
     };
-    struct searching : public wedge_finder
+
+    struct searching_ : public wedge_finder_
     {
-        template<typename event, typename FSM>
-        void on_entry( const event &, const FSM &)
-        { std::cout << "entering *searching state\n";};
-
-        template<typename event, typename fsm>
-        void on_exit( const event &, const fsm &)
-        { std::cout << "leaving *searching state\n";}
-
         template< typename FSM>
-        void on_exit(const time & t, FSM &fsm)
+        void on_exit(const time_ev & t, FSM &fsm)
         {
             fsm.flush( last_timestamp, last_gps_time);
         }
 
     };
+    typedef boost::msm::back::state_machine<initial_ > initial;
+    typedef boost::msm::back::state_machine<searching_ > searching;
+
+
     typedef initial initial_state;
     struct transition_table :
         boost::mpl::vector<
-        //   startstate                             |event  | new state
-        _row<  initial::exit_pt<initial::exit>      , time  ,searching> ,
-        _row<searching::exit_pt<searching::exit>    , time  ,searching>
+        //       Start                                Event             Next
+        //   +--------------------------------------+-----------------+-----------+
+        _row<  initial::exit_pt<initial::exit>      , time_ev         , searching> ,
+        _row<searching::exit_pt<searching::exit>    , time_ev         , searching>
         >
     {
     };
 
 private:
     typedef std::vector<unsigned char> buffer_type;
-    buffer_type buffer;
-    slope_correction correction;
+    buffer_type         buffer;
+    slope_correction    correction;
     unsigned long first_timestamp;
     unsigned long first_gps_time;
     unsigned long previous_timestamp;
@@ -381,7 +391,7 @@ public:
     {
        add_to_buffer( begin, end);
        process_event(
-                time( bytes_to_numbers::get_big_endian<3, unsigned long>(++begin))
+                time_ev( bytes_to_numbers::get_big_endian<3, unsigned long>(++begin))
                 );
     }
 
@@ -390,7 +400,7 @@ public:
     {
         add_to_buffer( begin, end);
         process_event(
-                gps( bytes_to_numbers::get_big_endian<4, unsigned long>(++begin))
+                gps_ev( bytes_to_numbers::get_big_endian<4, unsigned long>(++begin))
         );
     }
 
