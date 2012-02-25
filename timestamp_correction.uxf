@@ -47,7 +47,7 @@ on_entry: store gps time</panel_attributes>
     </coordinates>
     <panel_attributes>ts_found
 --
-on_entry: store time stamp</panel_attributes>
+on_entry: store time_stamp</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
@@ -126,11 +126,11 @@ time[~timestamps_close]</panel_attributes>
       <x>48</x>
       <y>88</y>
       <w>136</w>
-      <h>224</h>
+      <h>232</h>
     </coordinates>
     <panel_attributes>lt=&lt;-
 gps</panel_attributes>
-    <additional_attributes>120;24;40;24;40;208;88;208</additional_attributes>
+    <additional_attributes>120;24;40;24;40;216;88;216</additional_attributes>
   </element>
   <element>
     <type>com.umlet.element.Relation</type>
@@ -148,59 +148,64 @@ gps</panel_attributes>
     <type>com.umlet.element.custom.StateSubDiagram</type>
     <coordinates>
       <x>48</x>
-      <y>24</y>
+      <y>16</y>
       <w>400</w>
-      <h>384</h>
+      <h>392</h>
     </coordinates>
-    <panel_attributes/>
+    <panel_attributes>wedgefinder
+--</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <type>com.umlet.element.custom.State</type>
     <coordinates>
-      <x>72</x>
-      <y>520</y>
-      <w>72</w>
-      <h>32</h>
+      <x>8</x>
+      <y>536</y>
+      <w>184</w>
+      <h>56</h>
     </coordinates>
-    <panel_attributes>initial</panel_attributes>
+    <panel_attributes>initial
+--
+on_exit: store_first_timestamp</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <type>com.umlet.element.custom.State</type>
     <coordinates>
-      <x>232</x>
-      <y>520</y>
-      <w>72</w>
-      <h>32</h>
+      <x>264</x>
+      <y>536</y>
+      <w>248</w>
+      <h>56</h>
     </coordinates>
-    <panel_attributes>searching</panel_attributes>
+    <panel_attributes>searching
+--
+on_exit: flush( time_stamp, gpstime)</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <type>com.umlet.element.Relation</type>
     <coordinates>
-      <x>128</x>
-      <y>496</y>
-      <w>120</w>
+      <x>176</x>
+      <y>528</y>
+      <w>104</w>
       <h>56</h>
     </coordinates>
     <panel_attributes>lt=&lt;-
 time
 </panel_attributes>
-    <additional_attributes>104;40;24;40</additional_attributes>
+    <additional_attributes>88;40;24;40</additional_attributes>
   </element>
   <element>
     <type>com.umlet.element.Relation</type>
     <coordinates>
-      <x>248</x>
+      <x>456</x>
       <y>464</y>
       <w>110</w>
-      <h>88</h>
+      <h>112</h>
     </coordinates>
     <panel_attributes>lt=&lt;-
 time</panel_attributes>
-    <additional_attributes>24;56;24;40;80;40;80;72;64;72</additional_attributes>
+    <additional_attributes>24;72;24;40;80;40;80;96;64;96</additional_attributes>
   </element>
   <element>
     <type>com.umlet.element.Relation</type>
@@ -208,63 +213,64 @@ time</panel_attributes>
       <x>88</x>
       <y>384</y>
       <w>40</w>
-      <h>152</h>
+      <h>168</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>24;24;24;136</additional_attributes>
+    <additional_attributes>24;24;24;152</additional_attributes>
   </element>
   <element>
     <type>com.umlet.element.Relation</type>
     <coordinates>
-      <x>232</x>
+      <x>264</x>
       <y>384</y>
       <w>40</w>
-      <h>152</h>
+      <h>168</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>24;24;24;136</additional_attributes>
+    <additional_attributes>24;24;24;152</additional_attributes>
   </element>
   <element>
     <type>com.umlet.element.Note</type>
     <coordinates>
-      <x>288</x>
-      <y>424</y>
-      <w>152</w>
+      <x>352</x>
+      <y>432</y>
+      <w>168</w>
       <h>56</h>
     </coordinates>
     <panel_attributes>Inheritance is used to 
 indicate that both states 
 have the same sub-states
+(they're both wedgefinders)
 bg=yellow</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <type>com.umlet.element.Relation</type>
     <coordinates>
-      <x>232</x>
-      <y>432</y>
-      <w>72</w>
-      <h>48</h>
+      <x>264</x>
+      <y>424</y>
+      <w>104</w>
+      <h>56</h>
     </coordinates>
     <panel_attributes>lt=.</panel_attributes>
-    <additional_attributes>24;32;56;24</additional_attributes>
+    <additional_attributes>24;24;88;40</additional_attributes>
   </element>
   <element>
     <type>com.umlet.element.Relation</type>
     <coordinates>
       <x>88</x>
-      <y>432</y>
-      <w>216</w>
-      <h>64</h>
+      <y>440</y>
+      <w>280</w>
+      <h>56</h>
     </coordinates>
     <panel_attributes>lt=.</panel_attributes>
-    <additional_attributes>24;48;200;24</additional_attributes>
+    <additional_attributes>24;40;264;24</additional_attributes>
   </element>
   <element>
     <type>com.umlet.element.custom.RegionEndState</type>
     <coordinates>
-      <x>136</x>
-      <y>528</y>
+      <x>184</x>
+      <y>560</y>
       <w>16</w>
       <h>16</h>
     </coordinates>
@@ -275,13 +281,62 @@ bg=yellow</panel_attributes>
   <element>
     <type>com.umlet.element.custom.RegionEndState</type>
     <coordinates>
-      <x>296</x>
-      <y>528</y>
+      <x>504</x>
+      <y>552</y>
       <w>16</w>
       <h>16</h>
     </coordinates>
     <panel_attributes>exit
 </panel_attributes>
     <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.custom.InitialState</type>
+    <coordinates>
+      <x>56</x>
+      <y>488</y>
+      <w>16</w>
+      <h>16</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>40</x>
+      <y>464</y>
+      <w>40</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>24;72;24;24</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Note</type>
+    <coordinates>
+      <x>448</x>
+      <y>72</y>
+      <w>192</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>This sub-statemachine detects 
+'wedges', i.e. GPS time packets
+wedged between two timestamps
+with very close time values
+
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>424</x>
+      <y>104</y>
+      <w>112</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>24;104;96;24</additional_attributes>
   </element>
 </diagram>

@@ -46,19 +46,14 @@ namespace rtlogs
             {
                 // this depends on the handler to increase the begin-iterator if a message was recognized and to _not_ change the begin iterator
                 // in case of failure.
-
-                if (!table[*begin]->handle( reactor, begin, end))
+                if (!table[*begin]->handle( reactor, begin, begin, end))
                 {
                     iterator start_of_garbage = begin;
-                    iterator end_of_garbage = begin;
                     ++begin;
-                    while ( begin != end && !table[*begin]->handle( reactor, begin, end))
+                    while ( begin != end && !table[*begin]->handle( reactor, start_of_garbage, begin, end))
                     {
-                        end_of_garbage = ++begin;
+                        ++begin;
                     }
-
-                    // tell the handler where the unreadable bytes are.
-                    reactor.handle(  parse_error(), start_of_garbage, end_of_garbage);
                 }
             }
         }
@@ -164,7 +159,7 @@ namespace rtlogs
              * the begin itertator is advanced to a postion just after the last byte of the message.
              * If the checskum fails, th function must return false and not change the given begin-iterator.
              */
-            virtual bool handle( reactor_type &r, iterator &i, iterator end) = 0;
+            virtual bool handle( reactor_type &r, iterator garbage_begin, iterator &i, iterator end) = 0;
         };
 
         /**
@@ -184,7 +179,7 @@ namespace rtlogs
             /**
              * for unknown header values, we just return false.
              */
-            virtual bool handle( reactor_type &r, iterator &i, iterator end)
+            virtual bool handle( reactor_type &r, iterator garbage_begin, iterator &i, iterator end)
             {
                 return false;
             }
@@ -209,7 +204,7 @@ namespace rtlogs
              * This function performs a checksum test and if that succeeds will call the 'handle' member function
              * of the provided reactor.
              */
-            virtual bool handle( reactor_type &r, iterator &i, iterator end)
+            virtual bool handle( reactor_type &r, iterator garbage_begin, iterator &i, iterator end)
             {
                 iterator begin = i;
 
@@ -217,6 +212,12 @@ namespace rtlogs
                 // if the check succeeds.
                 if (!do_check(i, end)) return false;
 
+                // the checksum passes, process the message, but first process all
+                // garbage that was found before the successful checksum test.
+                if (garbage_begin != begin)
+                {
+                    caller<rtlogs::parse_error>::call( r, garbage_begin, begin);
+                }
                 caller<message>::call( r, begin, i);
 
                 return true;
