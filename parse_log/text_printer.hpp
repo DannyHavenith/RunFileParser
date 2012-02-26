@@ -9,8 +9,8 @@
 #define TEXT_PRINTER_HPP_
 #include <ostream>
 #include <boost/date_time/posix_time/posix_time.hpp>
-
 #include "bytes_to_numbers.hpp"
+#include "messages.hpp"
 
 /**
  * This class writes the message out in a csv-format (tab-separated, actually).

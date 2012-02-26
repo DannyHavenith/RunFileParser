@@ -8,6 +8,11 @@
 #ifndef LOGSCANNER_HPP_
 #define LOGSCANNER_HPP_
 #include "parse_error.hpp"
+#include <boost/utility/enable_if.hpp>
+#include <boost/fusion/include/for_each.hpp>
+#include <boost/fusion/adapted/mpl.hpp>
+#include <boost/fusion/include/mpl.hpp>
+
 
 namespace rtlogs
 {

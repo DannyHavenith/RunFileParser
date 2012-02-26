@@ -1,6 +1,7 @@
 // parse_log.cpp : Defines the entry point for the console application.
 //
 
+/*
 #include <boost/fusion/algorithm/iteration/for_each.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/adapted/mpl.hpp>
@@ -10,15 +11,18 @@
 #include <boost/cstdint.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
-
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <exception>
-#include <stdexcept>
 #include <vector>
 #include <algorithm>
+*/
 
+#include <stdexcept>
+#include <string>
+#include <iostream>
+#include <exception>
+
+#include "toolregistry.hpp"
+
+/*
 #include "messages.hpp"
 #include "logscanner.hpp"
 #include "parse_error.hpp"
@@ -32,8 +36,8 @@
 #include "timestamp_reporter.hpp"
 #include "gps_time_printer.hpp"
 #include "timestamp_correction.hpp"
+*/
 
-using namespace rtlogs;
 
 void error( const std::string &what)
 {
@@ -43,70 +47,26 @@ void error( const std::string &what)
 int main(int argc, char* argv[])
 {
     using namespace std;
-    typedef std::vector<unsigned char> buffer_type;
+    using namespace rtlogs;
 
     try
     {
-        if (argc < 2)
+        tool *the_tool = 0;
+        if (argc < 2 ||  0 == (the_tool = tool_registry::instance().find_tool( argv[1])))
         {
-            error("specify a file name");
+            cerr << "usage: parse <command> [command options...]\n";
+            cerr << "where command is one of:\n";
+            rtlogs::tool_registry::instance().print( cerr);
+        }
+        else
+        {
+            the_tool->run( ----argc, ++++argv);
         }
 
-        // open the log file
-        ifstream file( argv[1], ios_base::binary);
-        if (!file)
-        {
-            error( string("could not open file: ") + argv[1]);
-        }
-
-        // copy the file contents into a buffer
-        file.unsetf( ios_base::skipws);
-        istreambuf_iterator<char> begin( file), end;
-        const buffer_type buffer( begin, end);
+/*
 
         if (argc == 3)
         {
-            if (argv[2] == string("timestamps"))
-            {
-                // now scan the log bytes in the buffer.
-                timestamp_printer printer(cout);
-                scan_log( printer, buffer.begin(), buffer.end());
-                // cleanup
-                printer.flush();
-            }
-            else if (argv[2] == string("txt"))
-            {
-                text_printer printer( cout);
-                scan_log( printer, buffer.begin(), buffer.end());
-            }
-            else if (argv[2] == string("clean"))
-            {
-                clean_file_writer writer( argv[1]);
-                scan_log( writer, buffer.begin(), buffer.end());
-            }
-            else if (argv[2] == string("histogram"))
-            {
-                histogram_counter counter;
-                scan_log( counter, buffer.begin(), buffer.end());
-                counter.output( std::cout);
-            }
-            else if (argv[2] == string("values"))
-            {
-                analogue_channel_table table(std::cout) ;
-                scan_log( table, buffer.begin(), buffer.end());
-                table.set_scanning(false);
-                scan_log( table, buffer.begin(), buffer.end());
-            }
-            else if (argv[2] == string("report"))
-            {
-                timestamp_reporter reporter( std::cout);
-                scan_log( reporter, buffer.begin(), buffer.end());
-            }
-            else if (argv[2] == string("gpstime"))
-            {
-                gps_timestamp_printer printer( std::cout, std::cerr, argv[1]);
-                scan_log( printer, buffer.begin(), buffer.end());
-            }
             else if (argv[2] == string("correct"))
             {
                 using namespace boost::filesystem;
@@ -135,6 +95,7 @@ int main(int argc, char* argv[])
             kml_writer kml( cout);
             scan_log( kml, buffer.begin(), buffer.end());
         }
+*/
 
     }
     catch (exception &e)

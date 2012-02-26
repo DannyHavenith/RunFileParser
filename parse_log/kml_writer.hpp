@@ -9,7 +9,7 @@
 #define KML_WRITER_HPP_
 #include <ostream>
 #include "messages.hpp"
-
+#include <boost/cstdint.hpp>
 
 /**
  * This class handles gps_position messages only and will output a kml (google earth-) formatted

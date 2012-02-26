@@ -19,6 +19,7 @@
 
 #include "messages.hpp"
 #include "bytes_to_numbers.hpp"
+#include "logscanner.hpp"
 
 namespace timestamp_correction
 {
@@ -290,7 +291,7 @@ public:
      */
     void flush()
     {
-        scan_log(correction, buffer.begin(), buffer.end());
+        rtlogs::scan_log(correction, buffer.begin(), buffer.end());
         buffer.clear();
     }
 
