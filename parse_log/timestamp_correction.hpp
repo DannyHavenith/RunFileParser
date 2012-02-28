@@ -387,6 +387,12 @@ public:
         add_to_buffer( begin, end);
     }
 
+    template<typename iterator>
+    void handle( rtlogs::parse_error, iterator, iterator)
+    {
+        // ignore all unparseable bytes.
+    }
+
     template< typename iterator>
     void handle( timestamp, iterator begin, iterator end)
     {

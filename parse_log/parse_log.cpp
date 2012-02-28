@@ -62,41 +62,6 @@ int main(int argc, char* argv[])
         {
             the_tool->run( ----argc, ++++argv);
         }
-
-/*
-
-        if (argc == 3)
-        {
-            else if (argv[2] == string("correct"))
-            {
-                using namespace boost::filesystem;
-                path base;
-                if (argc>3)
-                {
-                    base = path(argv[3]);
-                }
-                else
-                {
-                    base = path( argv[1]).parent_path() / "corrected";
-                }
-                create_directories( base);
-                path output_path = base / path( argv[1]).filename();
-                boost::filesystem::ofstream outputstream( output_path);
-                timestamp_correction::time_correction corrector( outputstream);
-                scan_log( corrector, buffer.begin(), buffer.end());
-            }
-            else
-            {
-                std::cerr << "could not interpret command: " << argv[2] << "\n";
-            }
-        }
-        else
-        {
-            kml_writer kml( cout);
-            scan_log( kml, buffer.begin(), buffer.end());
-        }
-*/
-
     }
     catch (exception &e)
     {

@@ -7,11 +7,12 @@
 
 #ifndef LOGSCANNER_HPP_
 #define LOGSCANNER_HPP_
-#include "parse_error.hpp"
+#include <algorithm>
 #include <boost/utility/enable_if.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/adapted/mpl.hpp>
 #include <boost/fusion/include/mpl.hpp>
+#include "parse_error.hpp"
 
 
 namespace rtlogs
@@ -40,7 +41,7 @@ namespace rtlogs
             fill_handler_table();
         }
 
-        /*
+        /**
          * scan the log bytes in the iterator range [begin, end) and call the appropriate handler when messages are recognized.
          * When at some address 'a' no valid message is recognized, the scanner will try to continue at addres 'a+1' and repeat that until
          * a valid message is found.
@@ -51,11 +52,11 @@ namespace rtlogs
             {
                 // this depends on the handler to increase the begin-iterator if a message was recognized and to _not_ change the begin iterator
                 // in case of failure.
-                if (!table[*begin]->handle( reactor, begin, begin, end))
+                if (!table[(unsigned char)*begin]->handle( reactor, begin, begin, end))
                 {
                     iterator start_of_garbage = begin;
                     ++begin;
-                    while ( begin != end && !table[*begin]->handle( reactor, start_of_garbage, begin, end))
+                    while ( begin != end && !table[(unsigned char)*begin]->handle( reactor, start_of_garbage, begin, end))
                     {
                         ++begin;
                     }
@@ -76,7 +77,7 @@ namespace rtlogs
         template<int size, typename dummy = void>
         struct size_getter
         {
-            static int get_size( iterator, iterator)
+            static unsigned int get_size( iterator, iterator)
             {
                 return size;
             }
@@ -88,12 +89,12 @@ namespace rtlogs
         template<typename dummy2>
         struct size_getter<-1, dummy2>
         {
-            static int get_size( iterator first, iterator end)
+            static unsigned int get_size( iterator first, iterator end)
             {
                 iterator second = ++first;
                 if (second != end)
                 {
-                    return *second + 3;
+                    return (unsigned char)*second + 3;
                 }
                 else
                 {
@@ -111,7 +112,7 @@ namespace rtlogs
         struct checker_impl
         {
 
-            int get_size( iterator begin, iterator end)
+            unsigned int get_size( iterator begin, iterator end)
             {
                 return size_getter<size>::get_size( begin, end);
             }
@@ -120,10 +121,10 @@ namespace rtlogs
             {
                 iterator save = i;
                 unsigned char sum = 0;
-                for (int count = get_size(i, end) - 1; count && i != end; --count)
+                iterator message_end = i + std::min( (size_t)(end - i), (size_t)get_size(i, end) - 1) ;
+                for (;i!=message_end;++i)
                 {
-                    unsigned char value = *i++;
-                    sum += value;
+                    sum += (unsigned char )*i;
                 }
 
                 if (i == end || sum != *i++)
