@@ -17,74 +17,127 @@ using namespace std;
 using namespace timestamp_correction;
 using namespace boost::filesystem;
 
-struct timestamp_correction_tool : public rtlogs::tool_impl
+/**
+ * General implementation of a tool that takes an input- and an output parameter.
+ */
+struct from_to_tool : public rtlogs::tool_impl
 {
-    timestamp_correction_tool()
-            :tool_impl( "correct", "<source directory> <target directory>") {};
+    from_to_tool( const std::string &name, const std::string &prefix)
+            : tool_impl( name, "<source>... [destination]"), prefix( prefix) {}
 
-    virtual int run( int argc, char *argv[] )
+
+    virtual int run(int argc, char *argv[])
     {
-        if (argc != 2)
+        if(argc == 1)
         {
-            throw_usage_error();
+            // one source, no target specified
+            invent_target_name_and_run( argv[0]);
         }
-
-        if (!exists( argv[0]))
+        else if (argc == 2)
         {
-            throw std::runtime_error( argv[0] + std::string( " does not exist"));
-        }
-
-        if (is_directory( argv[0]))
-        {
-            correct_directories( argv[0], argv[1]);
+            // one source, one target specified
+            run_with_source_and_target_name( argv[0], argv[1]);
         }
         else
         {
-            path to( argv[1]);
-            path from( argv[0]);
-            if (is_directory( to))
-            {
-                to /= from.filename();
-            }
-            correct_file( from, to);
-        }
-        return 0;
-    }
+            const path destination_dir( argv[argc-1]);
+            // multiple sources, maybe one target specified.
 
-private:
-
-    static void correct_directories( const path &from, const path &to)
-    {
-        typedef std::vector<path> path_vector;
-        path_vector subdirs;
-        for (directory_iterator i( from); i != directory_iterator(); ++i)
-        {
-            if (is_directory( *i))
+            if (!exists( destination_dir) || is_directory(destination_dir))
             {
-                subdirs.push_back( i->path().filename());
+                // multiple sources, one target specified
+                for (int arg = 0; arg < argc - 1; ++ arg)
+                {
+                    const path from( argv[arg]);
+                    run_with_source_and_target_name( from, destination_dir/ from.filename());
+                }
             }
             else
             {
-                if (i->path().extension() == ".run")
+                // multiple sources, no target specified
+                for (int arg = 0; arg < argc; ++ arg)
                 {
-                    correct_file( i->path(), to / i->path().filename());
+                    const path from( argv[arg]);
+                    invent_target_name_and_run( from);
+                }
+
+            }
+        }
+
+
+        return 0;
+    }
+
+protected:
+    virtual void run_on_file(const path & from, const path & to) =0;
+private:
+    void invent_target_name_and_run(const path & source)
+    {
+        const path to(source.parent_path() / ( prefix + source.filename().string()));
+        run_with_source_and_target_name( source, to);
+    }
+
+    void run_with_source_and_target_name( const path &source, const path &target)
+    {
+        if(is_directory(source))
+        {
+            run_on_directories(source, target);
+        }
+        else
+        {
+            if (is_directory( target))
+            {
+                run_on_file( source, target/source.filename());
+            }
+            else
+            {
+                run_on_file( source, target);
+            }
+        }
+    }
+
+    void run_on_directories(const path & from, const path & to)
+    {
+        bool directory_created = false;
+        typedef std::vector<path> path_vector;
+        path_vector subdirs;
+        for(directory_iterator i(from);i != directory_iterator();++i){
+            if(is_directory(*i)){
+                subdirs.push_back(i->path().filename());
+            }else{
+                if(i->path().extension() == ".run"){
+                    if(!directory_created){
+                        create_directories( to);
+                        directory_created = true;
+                    }
+                    run_on_file( i->path(), to / i->path().filename());
                 }
             }
         }
 
         for (path_vector::const_iterator i = subdirs.begin(); i != subdirs.end();++i)
         {
-            correct_directories( from / *i, to / i->filename());
+            run_on_directories( from / *i, to / i->filename());
         }
 
     }
 
-    static void correct_file( const path &from, const path &to)
+private:
+    const std::string prefix;
+
+};
+
+struct timestamp_correction_tool : public from_to_tool
+{
+    timestamp_correction_tool()
+            :from_to_tool( "correct", "corrected_") {};
+
+protected:
+
+   virtual void run_on_file( const path &from, const path &to)
     {
         typedef std::vector<char> buffer_type;
 
-        // make sure the target directory exists
-        create_directories( to.parent_path());
 
         boost::filesystem::ifstream input_file( from);
         boost::filesystem::ofstream output_file( to);
