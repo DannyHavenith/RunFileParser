@@ -19,10 +19,25 @@ using namespace boost::filesystem;
 
 /**
  * General implementation of a tool that takes an input- and an output parameter.
+ *
+ * Tools of this type can take a directory or a file as an input argument. If the input is a directory
+ * then all files in that directory will be taken as inputs individually.
+ *
+ * The output argument can be omitted, can be a file (if the input argument is a file as well), or can be a directory.
+ *
+ * If the output argument is omitted, then the tool will create a reasonable name for the output argument. If the input argument was a
+ * directory, then the created output will also be a directory.
+ *
+ * If more than two arguments are provided (say, n arguments), then the first n-1 will be considered input arguments. If the last argument is the name of an existing file,
+ * then that argument will also be taken as an input argument and the rules will be followed as if the output argument was omitted. In all other cases, the last argument will
+ * be interpreted as a directory that receives the output files.
+ *
+ * The concrete tool needs to implement one single function: run_on_file(const path & from, const path & to) that takes a single file as input and a single filename
+ * for its output. This base class will take care of the logic around directories, multiple arguments, etc.
  */
-struct from_to_tool : public rtlogs::tool_impl
+struct input_output_tool : public rtlogs::tool_impl
 {
-    from_to_tool( const std::string &name, const std::string &prefix)
+    input_output_tool( const std::string &name, const std::string &prefix)
             : tool_impl( name, "<source>... [destination]"), prefix( prefix) {}
 
 
@@ -127,10 +142,10 @@ private:
 
 };
 
-struct timestamp_correction_tool : public from_to_tool
+struct timestamp_correction_tool : public input_output_tool
 {
     timestamp_correction_tool()
-            :from_to_tool( "correct", "corrected_") {};
+            :input_output_tool( "correct", "corrected_") {};
 
 protected:
 
