@@ -10,9 +10,12 @@ cmake_minimum_required(VERSION 2.6)
 project(parse_logs)
 add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 
-SET(Boost_USE_STATIC_LIBS OFF)
+SET(Boost_USE_STATIC_LIBS ON)
 SET(Boost_USE_MULTITHREAD ON)
 FIND_PACKAGE( Boost COMPONENTS system filesystem)
+
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 
 #include_directories( ${parse_logs_SOURCE_DIR})
 

@@ -74,7 +74,7 @@ public:
             output << '\n';
 
             // fill all values with 0.0
-            std::for_each( values.begin(), values.end(), bind( &pair_type::second, _1) = 0.0);
+            std::for_each( values.begin(), values.end(), boost::lambda::bind( &pair_type::second, _1) = 0.0);
         }
     }
 
@@ -184,7 +184,7 @@ private:
 
                 // print all last known values.
                 output << last_timestamp << '\t' << changed.first << ':' << changed.second << '\t';
-                std::for_each( values.begin(), values.end(), output << bind( &pair_type::second, _1) << '\t');
+                std::for_each( values.begin(), values.end(), output << boost::lambda::bind( &pair_type::second, _1) << '\t');
                 output << '\n';
 
                 // remain silent for a while (if rate > 0)
