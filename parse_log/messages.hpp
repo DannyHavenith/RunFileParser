@@ -35,14 +35,14 @@ struct messages_definition
     struct beacon_pulse_present : message<12, 3>{ static const char *description() { return  "Beacon Pulse Present";}};
     struct frequency       : message_range<14, 19, 5>    { static const char *description() { return  "Frequency";}};
     struct serial_data_input: message<19, var>   { static const char *description() { return  "Serial Data Input";}};
-    struct analogue1        : message_range<20,52, 4>    { static const char *description() { return  "Analogue 1";}};
+    struct analogue        : message_range<20,52, 4>    { static const char *description() { return  "Analogue 1";}};
     struct channel_data     : message<52, 67>   { static const char *description() { return  "Channel Data Channel";}};
     struct display_data     : message<53, 11>   { static const char *description() { return  "Display Data Channel";}};
     struct reflash          : message<54, 6>    { static const char *description() { return  "Reflash Channel";}};
     struct date_storage     : message<55, 10>   { static const char *description() { return  "Date Storage Channel";}};
     struct gps_course       : message<56, 10>   { static const char *description() { return  "GPS Course Data";}};
     struct gps_accuracy     : message<57, 10>   { static const char *description() { return  "GPS Altitude and Speed Accuracy";}};
-    struct extended_frequency1 : message_range<58, 62, 11>{ static const char *description() { return  "Extended Frequency 1";}};
+    struct extended_frequency : message_range<58, 62, 11>{ static const char *description() { return  "Extended Frequency 1";}};
     struct extended_rpm     : message<62, 11>   { static const char *description() { return  "Extended RPM";}};
     struct start_of_run     : message<63, 3>    { static const char *description() { return  "Start of Run Channel";}};
     struct processed_speed  : message<64, 5>    { static const char *description() { return  "Processed Speed Data";}};
@@ -67,7 +67,7 @@ struct messages_definition
     struct roll_rate        : message<83, 5>    { static const char *description() { return  "Roll Rate Channel";}};
     struct roll_angle       : message<84, 5>    { static const char *description() { return  "Roll Angle Channel";}};
     struct gradient         : message<85, 10>   { static const char *description() { return  "Gradient Channel";}};
-    struct pulse_count1     : message_range<86, 90, 5>    { static const char *description() { return  "Pulse Count 1";}};
+    struct pulse_count     : message_range<86, 90, 5>    { static const char *description() { return  "Pulse Count 1";}};
     struct baseline         : message<90, 6>    { static const char *description() { return  "Baseline Channel";}};
     struct unit_control     : message<91, 5>    { static const char *description() { return  "Unit Control Channel";}};
     struct z_acceleration   : message<92, 4>    { static const char *description() { return  "Z Acceleration";}};
@@ -98,7 +98,7 @@ struct messages_definition
             beacon_pulse_present ,
             frequency      ,
             serial_data_input,
-            analogue1       ,
+            analogue       ,
             channel_data        ,
             display_data        ,
             reflash
@@ -108,7 +108,7 @@ struct messages_definition
             date_storage        ,
             gps_course      ,
             gps_accuracy        ,
-            extended_frequency1 ,
+            extended_frequency ,
             extended_rpm        ,
             start_of_run        ,
             processed_speed ,
@@ -136,7 +136,7 @@ struct messages_definition
             roll_rate       ,
             roll_angle      ,
             gradient            ,
-            pulse_count1        ,
+            pulse_count        ,
             baseline            ,
             unit_control        ,
             z_acceleration  ,

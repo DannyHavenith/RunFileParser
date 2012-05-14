@@ -7,16 +7,24 @@
 add_executable(
 	parse_log
 	
-	timestamp_printer.hpp
-	text_printer.hpp
-	clean_file_writer.hpp
-	histogram_counter.hpp
 	analogue_channel_table.hpp
-	timestamp_reporter.hpp
+	bytes_to_numbers.hpp
+	clean_file_writer.hpp
+	detail_handler.hpp
 	gps_time_printer.hpp
+	histogram_counter.hpp
 	kml_writer.hpp
+	logscanner.hpp
+	message.hpp
+	messages.hpp
+	parse_error.hpp
+	text_printer.hpp
 	timestamp_correction.hpp
-
+	timestamp_printer.hpp
+	timestamp_reporter.hpp
+	tool_implementation.hpp
+	toolregistry.hpp
+	
 	parse_log.cpp
 	toolregistry.cpp
 	timestamp_printer.cpp
@@ -28,6 +36,7 @@ add_executable(
 	gps_time_printer.cpp
 	kml_writer.cpp
 	timestamp_correction.cpp
+	tnoify.cpp
 	)
 	
 target_link_libraries(parse_log ${Boost_LIBRARIES})	

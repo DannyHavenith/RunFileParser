@@ -17,7 +17,7 @@ namespace bytes_to_numbers
         {
             // note: this relies on the extract function to increase the iterator.
             T result = big_endian_extractor< size -1, T, iterator>::extract( begin);
-            return (result << 8) | *begin++;
+            return (result << 8) | (*begin++ & 0xff);
         }
     };
 

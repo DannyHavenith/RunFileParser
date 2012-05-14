@@ -21,6 +21,31 @@
 #include "bytes_to_numbers.hpp"
 #include "logscanner.hpp"
 
+/**
+ * A simple handler class that will just write all parsed messages to a given output file.
+ */
+class binary_file_writer
+{
+public:
+    binary_file_writer( std::ostream &output)
+    :output( output)
+    {
+    }
+
+    /**
+     * all messages are just written verbatim to the output file.
+     */
+    template<typename message, typename iterator>
+    void handle( message, iterator begin, iterator end)
+    {
+        std::copy( begin, end, std::ostreambuf_iterator<char>( output));
+    }
+
+private:
+    std::ostream &output;
+};
+
+
 namespace timestamp_correction
 {
 
@@ -54,10 +79,11 @@ namespace timestamp_correction
  * The time_stamp_correcter class cuts the data streams into segments where this relation is indeed linear and
  * programs an object of this slope correction class accordingly.
  */
+template< typename output_handler>
 class slope_correction  : public rtlogs::messages_definition
 {
 public:
-    slope_correction( std::ostream &output)
+    slope_correction( output_handler &output)
     :output( output), pivot(0), corrected_pivot(0), skew(1.0),
      lower_treshold(0), upper_treshold( std::numeric_limits<timestamp_type>::max()){}
 
@@ -89,11 +115,12 @@ public:
     }
 
     ///
-    /// most messages just get written to output
+    /// most messages just get send to output
     template<typename message, typename iterator>
     void handle( message, iterator begin, iterator end)
     {
-        std::copy( begin, end, std::ostreambuf_iterator<char>( output));
+        output.handle( message(), begin, end);
+        //std::copy( begin, end, std::ostreambuf_iterator<char>( output));
     }
 
     /// time stamps get adapted before being sent to output
@@ -114,14 +141,14 @@ public:
             // create a timestamp message.
             unsigned char message[5] = { timestamp::header, value >> 16, value >> 8, value };
             message[4] = message[0] + message[1] + message[2] + message[3];
-
-            std::copy( message, message + 5, std::ostreambuf_iterator<char>( output));
+            output.handle( timestamp(), message, message + 5);
+            //std::copy( message, message + 5, std::ostreambuf_iterator<char>( output));
         }
     }
 
 
 private:
-    std::ostream    &output;
+    output_handler  &output;
     timestamp_type  pivot;
     timestamp_type  corrected_pivot;
     double          skew;
@@ -248,10 +275,12 @@ struct wedge_finder_ : public boost::msm::front::state_machine_def<wedge_finder_
  * its output stream.
  *
  */
-class time_correction_ :  public boost::msm::front::state_machine_def<time_correction_>
+template< typename output_handler>
+class time_correction_ :  public boost::msm::front::state_machine_def<time_correction_<output_handler> >
 {
 public:
-    time_correction_( std::ostream &output)
+    typedef boost::msm::front::state_machine_def<time_correction_<output_handler> > front_end;
+    time_correction_( output_handler &output)
     : correction( output)
     {
 
@@ -337,15 +366,18 @@ public:
     };
     typedef boost::msm::back::state_machine<initial_ > initial;
     typedef boost::msm::back::state_machine<searching_ > searching;
-
+    //typedef typename front_end::template _row<  initial:: template exit_pt<typename initial::exit>      , time_ev         , searching> row1type;
 
     typedef initial initial_state;
+
+    // I need quite a lot of 'template' and 'typename' boilerplate here because the compiler can't make any assumptions anymore since frontend is a
+    // dependend name. Need to figure out a way to make this simpler, this beats the purpose (readability) of a state transition table.
     struct transition_table :
         boost::mpl::vector<
-        //       Start                                Event             Next
-        //   +--------------------------------------+-----------------+-----------+
-        _row<  initial::exit_pt<initial::exit>      , time_ev         , searching> ,
-        _row<searching::exit_pt<searching::exit>    , time_ev         , searching>
+        //                                  Start                                                                Event             Next
+        //                                  +------------------------------------------------------------------+-----------------+-----------+
+        typename front_end::template _row<  typename   initial:: template exit_pt<typename initial::exit>      , time_ev         , searching> ,
+        typename front_end::template _row<  typename searching:: template exit_pt<typename searching::exit>    , time_ev         , searching>
         >
     {
     };
@@ -353,7 +385,7 @@ public:
 private:
     typedef std::vector<unsigned char> buffer_type;
     buffer_type         buffer;
-    slope_correction    correction;
+    slope_correction<output_handler> correction;
     unsigned long first_timestamp;
     unsigned long first_gps_time;
     unsigned long previous_timestamp;
@@ -363,21 +395,29 @@ private:
     const static unsigned long gps_timestamp_ratio = 10;
 };
 
-class time_correction : public boost::msm::back::state_machine<time_correction_>, public rtlogs::messages_definition
+/**
+ * This class is the front end to the time correction state machine.
+ *
+ *
+ */
+template< typename output_handler>
+class time_correction : public boost::msm::back::state_machine<time_correction_<output_handler> >, public rtlogs::messages_definition
 {
 public:
+    typedef boost::msm::back::state_machine<time_correction_<output_handler> > state_machine;
+
     /// forward the reference parameter to the backend.
     /// we need create this constructor because the backend normally forwards all its constructor arguments
     /// by value and we don't want to burden clients with the task of remembering to wrap the stream in a ref(...) wrapper.
-    time_correction( std::ostream &output)
-    :boost::msm::back::state_machine<time_correction_>( boost::ref( output))
+    time_correction( output_handler &output)
+    :boost::msm::back::state_machine<time_correction_<output_handler> >( boost::ref( output))
     {
-        start();
+        state_machine::start();
     }
 
     ~time_correction()
     {
-        final_flush();
+        state_machine::final_flush();
     }
 
     /// most messages just get copied into the buffer
@@ -387,27 +427,34 @@ public:
         add_to_buffer( begin, end);
     }
 
+    /// messages that cannot be parsed are ignored.
     template<typename iterator>
     void handle( rtlogs::parse_error, iterator, iterator)
     {
         // ignore all unparseable bytes.
     }
 
+    /**
+     * timestamp messages generate events.
+     */
     template< typename iterator>
     void handle( timestamp, iterator begin, iterator end)
     {
        add_to_buffer( begin, end);
-       process_event(
-                time_ev( bytes_to_numbers::get_big_endian<3, unsigned long>(++begin))
+       state_machine::process_event(
+       typename state_machine::time_ev( bytes_to_numbers::get_big_endian<3, unsigned long>(++begin))
                 );
     }
 
+    /**
+     * gps time events generate events.
+     */
     template< typename iterator>
     void handle( gps_time_storage, iterator begin, iterator end)
     {
         add_to_buffer( begin, end);
         process_event(
-                gps_ev( bytes_to_numbers::get_big_endian<4, unsigned long>(++begin))
+                typename state_machine::gps_ev( bytes_to_numbers::get_big_endian<4, unsigned long>(++begin))
         );
     }
 
