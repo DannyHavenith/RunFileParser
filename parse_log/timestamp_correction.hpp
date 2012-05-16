@@ -10,6 +10,9 @@
 #include <vector>
 #include <iterator>
 #include <limits>
+#include <iostream>
+#include <iterator>
+#include <algorithm>
 
 // boost meta state machine includes
 #include <boost/msm/back/state_machine.hpp>
@@ -30,6 +33,9 @@ public:
     binary_file_writer( std::ostream &output)
     :output( output)
     {
+        // write a header to the file
+       static const char header[] = {0x98 , 0x1d , 0x00 , 0x00 , 0xc8 , 0x00 , 0x00 , 0x00};
+       std::copy( header, header + sizeof header, std::ostreambuf_iterator<char>( output));
     }
 
     /**
