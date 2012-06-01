@@ -17,10 +17,14 @@ struct timestamp_reporter_tool : public rtlogs::single_file_tool
     timestamp_reporter_tool()
             :single_file_tool( "timestamp") {};
 
-    virtual void run( const buffer_type &buffer, const std::string &)
+    virtual void run( const buffer_type &buffer, const std::string &filename)
     {
         timestamp_reporter printer( cout);
         scan_log( printer, buffer.begin(), buffer.end());
+        if (!printer.gps_found())
+        {
+            cerr << "no gps timestamps in " << filename << '\n';
+        }
     }
 } timestamp_reporter_tool_instance;
 

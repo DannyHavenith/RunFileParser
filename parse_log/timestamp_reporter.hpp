@@ -17,7 +17,7 @@
 struct timestamp_reporter : public rtlogs::messages_definition
 {
     timestamp_reporter(std::ostream &output)
-    :last_timestamp(0), last_gps_timestamp(0), output(output)
+    :last_timestamp(0), last_gps_timestamp(0), output(output), found_gps(false)
     {
     }
 
@@ -48,6 +48,7 @@ struct timestamp_reporter : public rtlogs::messages_definition
 
     template <typename iterator> void handle( gps_time_storage, iterator begin, iterator end)
     {
+        found_gps = true;
         iterator current = begin;
         ++current;
 
@@ -76,9 +77,15 @@ struct timestamp_reporter : public rtlogs::messages_definition
 
     template< typename message, typename iterator> void handle( message, iterator, iterator) {}; // ignore everything else.
 
+    bool gps_found( ) const
+    {
+        return found_gps;
+    }
+
 private:
     unsigned long last_timestamp;
     unsigned long last_gps_timestamp;
+    bool          found_gps;
     std::ostream  &output;
 
 };

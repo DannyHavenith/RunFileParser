@@ -11,10 +11,17 @@
 #include <map>
 #include <algorithm>
 #include <utility> // for std::pair, std::make_pair
+#include <string>
+#include <vector>
 #include <boost/lambda/lambda.hpp>
 #include <boost/lambda/bind.hpp>
 #include <boost/cstdint.hpp>
+#include "boost/date_time/gregorian/gregorian.hpp"
+#include "boost/date_time/posix_time/posix_time.hpp"
+#include "boost/lexical_cast.hpp"
+
 #include "messages.hpp"
+#include "bytes_to_numbers.hpp"
 
 /**
  * This class generates a tab-separated text file with all floating point values found in the file.
@@ -33,181 +40,264 @@ class analogue_channel_table : public rtlogs::messages_definition
 {
 public:
 
-    /**
-     * Initialize an object of this class with an output stream and a reporting period. If the reporting period is zero, or less than 1/100,
-     * a line of output will be emitted at every change in a channel.
-     */
-    analogue_channel_table( std::ostream &output, double reporting_period_in_seconds = 0.0)
-    :last_timestamp(0), output(output),scanning(true), silent_until(0),reporting_period(reporting_period_in_seconds * ticks_per_second)
+    typedef std::pair<unsigned short, unsigned short>       channel_index;
+    typedef std::vector<
+            std::pair<channel_index, std::string>
+    > column_info;
+
+    analogue_channel_table( std::ostream& output,
+            double reporting_period_in_seconds = 0.0) :
+            last_timestamp(0), first_timestamp(0), output(output), scanning(true), silent_until(0), reporting_period(
+                    reporting_period_in_seconds * ticks_per_second), first_date(boost::posix_time::not_a_date_time), separator(";")
     {
     }
 
-    /**
-     * Set this object in scanning mode, or in non-scanning mode.
-     *
-     * Objects of this class are are offered events of a log twice: the first time is while the object
-     * is in scanning mode. The second time actual output will be generated.
-     *
-     * After construction, objects of this class are in scanning mode. This means that
-     * when input is offered, no output is generated, but an internal table of all encountered event
-     * types is built. This table is necessary to output all data in their proper column when this class
-     * is used in non-scanning mode.
-     *
-    */
+    boost::posix_time::ptime get_date() const
+    {
+        return first_date;
+    }
+
+    void reset_values()
+    {
+        using boost::lambda::_1;
+        silent_until    = 0;
+        last_timestamp  = 0;
+        first_timestamp = 0;
+        std::for_each(values.begin(), values.end(),
+                boost::lambda::bind(&pair_type::second, _1) = 0.0);
+    }
+
     void set_scanning( bool new_scanning)
     {
         using boost::lambda::bind;
         using boost::lambda::_1;
-
         scanning = new_scanning;
         if (!scanning)
         {
-            silent_until = 0;
-            last_timestamp = 0;
-
-            // output a header line
-            output << "timestamp\tchanged\t";
-            for (map_type::const_iterator header = values.begin(); header != values.end(); ++ header)
+            headers.clear();
+            reset_values();
+            for (
+                    map_type::const_iterator valueIt = values.begin();
+                    valueIt != values.end();
+                    ++valueIt
+                 )
             {
-                output << header->first.first << ':' << header->first.second << '\t';
+                headers.push_back(
+                        std::make_pair(
+                                boost::lexical_cast<std::string>( valueIt->first.first) + ":" + boost::lexical_cast<std::string>( valueIt->first.second)
+                                , valueIt
+                        )
+                );
             }
-            output << '\n';
-
-            // fill all values with 0.0
-            std::for_each( values.begin(), values.end(), boost::lambda::bind( &pair_type::second, _1) = 0.0);
+            print_header();
         }
     }
 
-    /// ignore most messages
-    void handle(...) {};
+    /**
+     * Use this function if the columns are known beforehand. This sets the columns that will be output and their order.
+     * columns that aren't mentioned here will not be printed.
+     */
+    void set_columns( column_info &columns)
+    {
+        headers.clear();
+        values = first_values;
+        for (
+                column_info::const_iterator col = columns.begin();
+                col != columns.end();
+                ++col
+             )
+        {
+            map_type::iterator valueIt = values.insert( std::make_pair(col->first, 0.0)).first;
+            headers.push_back( std::make_pair( col->second, valueIt));
+        }
+        print_header();
+        scanning = false;
+    }
 
-    /// store the most recent timestamp
-    template< typename iterator>
+    void handle( ...)
+    {
+    }
+
+    template<typename iterator>
     void handle( timestamp, iterator begin, iterator end)
     {
         ++begin;
         size_t result = *begin++;
-        result = (result << 8) + * begin++;
-        result = (result << 8) + * begin++;
+        result = (result << 8) + *begin++;
+        result = (result << 8) + *begin++;
         last_timestamp = result;
-        if (0 != reporting_period) emit_values( key_type(0,0));
+        if (!first_timestamp) first_timestamp = result;
+        if (0 != reporting_period)
+            emit_values();
     }
 
-    /**
-     * Analogue messages each contain one big-endian, fixed point (/1000) unsigned integer of 16 bits
-     */
+    template< typename iterator>
+    void handle( gps_position, iterator begin, iterator end)
+    {
+        const unsigned short header = *begin++;
+        using bytes_to_numbers::get_big_endian;
+        boost::int32_t longitude = get_big_endian<4, boost::int32_t>( begin);
+        boost::int32_t latitude = get_big_endian<4, boost::int32_t>( begin + 4);
+        boost::int32_t accuracy = get_big_endian<4, boost::int32_t>( begin + 8);
+        new_value( header, 0, static_cast<double>(longitude) * 0.0000001);
+        new_value( header, 1, static_cast<double>(latitude) * 0.0000001);
+        new_value( header, 2, accuracy);
+
+    }
+
+    template<typename iterator>
+    void handle( date_storage, iterator begin, iterator end)
+    {
+        typedef boost::uint8_t byte;
+        using namespace boost::posix_time;
+        using namespace boost::gregorian;
+
+        if ( first_date == not_a_date_time)
+        {
+            byte header  = *begin++;
+            byte s = *begin++;
+            byte m = *begin++;
+            byte h   = *begin++;
+            byte day     = *begin++;
+            byte month   = *begin++;
+            boost::uint16_t year= bytes_to_numbers::get_big_endian<2, uint16_t>(begin);
+            try
+            {
+            date d( year, month, day);
+            ptime result( d, hours(h) + minutes(m) +seconds(s));
+            first_date = result;
+            }
+            catch (std::exception&)
+            {
+                  // intentionally left blank. just don't assign to first date in case of trouble.
+            }
+
+            byte offset = begin[2];
+
+        }
+    }
+
+    template< typename iterator>
+    void handle( gps_time_storage, iterator begin, iterator end)
+    {
+        const unsigned short header = *begin++;
+        using bytes_to_numbers::get_big_endian;
+        boost::uint32_t timestamp = get_big_endian<4, boost::uint32_t>( begin);
+        new_value( header, 0, static_cast<double>(timestamp)/1000);
+    }
+
     template<typename iterator>
     void handle( analogue, iterator begin, iterator end)
     {
         const unsigned short header = *begin++;
-        const key_type p = std::make_pair( header, 0);
-
-        boost::uint16_t value = ((boost::uint16_t)*begin++) << 8;
-        value |= *begin ;
-
-        new_value( p, ((double)value) / 1000.0);
+        boost::uint16_t value = ((boost::uint16_t)((*begin++))) << 8;
+        value |= *begin;
+        new_value(header, 0, ((double) ((value))) / 1000.0);
     }
 
-    /**
-     * External temperature messages contain multiplexed little-endian,
-     * fixed point (/10) signed integers of 16 bits
-     */
     template<typename iterator>
     void handle( external_temperature, iterator begin, iterator end)
     {
         const unsigned short header = *begin++;
         const unsigned short index = *begin++;
-        const key_type p = std::make_pair( header, index);
-
         boost::int16_t value = *begin++;
         value |= *begin * 256;
-
-        new_value( p, ((double)value) / 10.0);
+        new_value(header, index, ((double) ((value))) / 10.0);
     }
 
-    /**
-     * External percentage messages contain multiplexed little-endian,
-     * fixed point (/10) signed integers of 16 bits
-     */
     template<typename iterator>
     void handle( external_percentage, iterator begin, iterator end)
     {
-        // it's just like external_temperature
-        handle( external_temperature(), begin, end);
+        handle(external_temperature(), begin, end);
     }
 
-    /**
-     * External temperature contain multiplexed little-endian, fixed point (/10) unsigned integers of 16 bits
-     */
     template<typename iterator>
     void handle( external_frequency, iterator begin, iterator end)
     {
         const unsigned short header = *begin++;
         const unsigned short index = *begin++;
-        const key_type p = std::make_pair( header, index);
-
         boost::uint16_t value = *begin++;
         value += *begin * 256;
-        new_value( p, ((double)value)/10.0);
+        new_value(header, index, ((double) ((value))) / 10.0);
     }
 
-    /**
-     * External misc contains multiplexed little-endian, fixed point (/10) unsigned integers of 16 bits.
-     */
     template<typename iterator>
     void handle( external_misc, iterator begin, iterator end)
     {
-        // it's just the same as external_frequency
-        handle( external_frequency(), begin, end);
+        handle(external_frequency(), begin, end);
     }
 
-
-
-
 private:
-    typedef std::pair< unsigned short, unsigned short> key_type;
-    void emit_values( const key_type &changed)
+
+    void print_header()
+    {
+        output << "time [s]";
+        for (
+                header_vector::const_iterator header = headers.begin();
+                header != headers.end();
+                ++header
+             )
+        {
+            output << separator << header->first;
+        }
+        output << '\n';
+    }
+
+    void emit_values()
     {
         if (!scanning && last_timestamp > silent_until)
         {
-            // we know now that we have at least one timestamp (since last_timestamp > silent_until >= 0),
-            // but maybe our silent_until has not been set for the first time.
             if (0 == silent_until)
             {
-                // don't output anything until we've seen at least one reporting period of data.
                 silent_until = last_timestamp + reporting_period;
             }
             else
             {
-                using boost::lambda::_1;
-                using boost::lambda::bind;
-
-                // print all last known values.
-                output << last_timestamp << '\t' << changed.first << ':' << changed.second << '\t';
-                std::for_each( values.begin(), values.end(), output << boost::lambda::bind( &pair_type::second, _1) << '\t');
+                // print all values, in the order determined by the header array.
+                output << static_cast<double>(last_timestamp - first_timestamp)/100;
+                for (
+                        header_vector::const_iterator header = headers.begin();
+                        header != headers.end();
+                        ++header
+                     )
+                {
+                    output << separator << header->second->second;
+                }
                 output << '\n';
-
-                // remain silent for a while (if rate > 0)
                 silent_until += reporting_period;
             }
         }
+
     }
-    void new_value( const key_type &key, double value)
+
+    void new_value( unsigned short channel, unsigned short index, double value)
     {
+        const channel_index key( channel, index);
+        map_type::iterator it = first_values.find( key);
+        if (it == first_values.end())
+        {
+            first_values[key] = value;
+        }
         values[key] = value;
-        emit_values( key);
+        emit_values();
     }
-    typedef std::map<key_type, double> map_type;
-    typedef map_type::value_type  pair_type;
 
-    map_type       values;
-    size_t         last_timestamp;
-    std::ostream   &output;
-    bool           scanning;
-    size_t         silent_until;     ///< remain silent until the last_timestamp reaches this value.
-    int            reporting_period; ///< maximum rate at which to output values. zero by default, which means output at every variable change.
+    typedef std::map<channel_index, double> map_type;
+    typedef std::vector< std::pair<std::string, map_type::const_iterator> > header_vector;
+    typedef map_type::value_type pair_type;
+
+    map_type        values;
+    map_type        first_values;
+    header_vector   headers;
+    size_t          last_timestamp;
+    size_t          first_timestamp;
+    std::ostream&   output;
+    bool            scanning;
+    size_t          silent_until;
+    int             reporting_period;
     static const int ticks_per_second = 100;
-
+    boost::posix_time::ptime first_date;
+    const std::string separator;
 };
 
 
