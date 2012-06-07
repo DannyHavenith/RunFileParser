@@ -90,6 +90,7 @@ public:
                 );
             }
             print_header();
+            first_timestamp = 0;
         }
     }
 
@@ -112,7 +113,10 @@ public:
         }
         print_header();
         scanning = false;
-    }
+        silent_until    = 0;
+        last_timestamp  = 0;
+        first_timestamp = 0;
+     }
 
     void handle( ...)
     {
@@ -141,10 +145,38 @@ public:
         boost::int32_t accuracy = get_big_endian<4, boost::int32_t>( begin + 8);
         new_value( header, 0, static_cast<double>(longitude) * 0.0000001);
         new_value( header, 1, static_cast<double>(latitude) * 0.0000001);
-        new_value( header, 2, accuracy);
+        new_value( header, 2, static_cast<double>(accuracy) / 1000.0);
 
     }
 
+    template<typename iterator>
+    void handle( accelerations, iterator begin, iterator end)
+    {
+        using namespace boost;
+        using bytes_to_numbers::get_big_endian;
+
+        const unsigned short header = *begin++;
+        double lateral = get_big_endian< 2, int16_t>( begin);
+        double longitudinal = get_big_endian< 2, int16_t>( begin + 2);
+        new_value( header, 0, lateral / 256.0);
+        new_value( header, 1, longitudinal / 256.0);
+    }
+
+    template <typename iterator>
+    void handle( gps_raw_speed, iterator begin, iterator end)
+    {
+        using namespace boost;
+        using bytes_to_numbers::get_big_endian;
+        const unsigned short header = *begin++;
+
+        // in cm/s
+        double speed = get_big_endian<4, uint32_t>( begin);
+        new_value( header, 0, speed * (3.6 / 100.0));
+
+    }
+    /**
+     * Date values are handled by this class, but only to find the first reported date in the file.
+     */
     template<typename iterator>
     void handle( date_storage, iterator begin, iterator end)
     {
@@ -224,7 +256,11 @@ public:
     template<typename iterator>
     void handle( external_misc, iterator begin, iterator end)
     {
-        handle(external_frequency(), begin, end);
+        const unsigned short header = *begin++;
+        const unsigned short index = *begin++;
+        boost::uint16_t value = *begin++;
+        value += *begin * 256;
+        new_value(header, index, ((double) ((value))) / 100.0);
     }
 
 private:
@@ -250,11 +286,12 @@ private:
             if (0 == silent_until)
             {
                 silent_until = last_timestamp + reporting_period;
+                first_timestamp = last_timestamp;
             }
             else
             {
                 // print all values, in the order determined by the header array.
-                output << static_cast<double>(last_timestamp - first_timestamp)/100;
+                output << static_cast<double>(silent_until - first_timestamp - reporting_period)/100;
                 for (
                         header_vector::const_iterator header = headers.begin();
                         header != headers.end();

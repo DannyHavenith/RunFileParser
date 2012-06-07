@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <locale>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/regex.hpp>
@@ -20,6 +21,40 @@ using namespace std;
 using namespace timestamp_correction;
 using namespace boost::filesystem;
 using namespace boost;
+
+template<typename CharType>
+class punctuation_facet : public std::numpunct<CharType>
+{
+public:
+
+  typedef CharType char_type;
+
+  explicit punctuation_facet(const CharType& decimalPoint) :
+    decimalPoint_(decimalPoint), numpunct<CharType>(static_cast<size_t>(0))
+  {
+  }
+
+  punctuation_facet(const punctuation_facet& rhs) :
+    decimalPoint_(rhs.decimalPoint_)
+  {
+  }
+
+protected:
+
+  virtual ~punctuation_facet()
+  {
+  };
+
+  virtual CharType do_decimal_point() const
+  {
+    return decimalPoint_;
+  }
+
+private:
+
+  punctuation_facet& operator=(const punctuation_facet& rhs);
+  const CharType decimalPoint_;
+};
 
 
 struct tnoify_tool : public rtlogs::input_output_tool
@@ -68,6 +103,19 @@ protected:
         boost::filesystem::ifstream input_file( from, std::ios::binary);
         boost::filesystem::ofstream output_file( csvfile, std::ios::binary);
 
+        // set the date/time format for the output file to produce dates like:
+        // "01-12-2012 13:01:10"
+        using boost::posix_time::time_facet;
+        time_facet *facet(new time_facet("%d-%m-%Y %H:%M:%S"));
+        output_file.imbue( std::locale( output_file.getloc(), facet));
+
+        using boost::gregorian::date_facet;
+        date_facet *dfacet(new date_facet("%d-%m-%Y"));
+        output_file.imbue( std::locale( output_file.getloc(), dfacet));
+
+        punctuation_facet<char> *pfacet( new punctuation_facet<char>(','));
+        output_file.imbue( std::locale( output_file.getloc(), pfacet));
+
         // copy the file contents into a buffer
         input_file.unsetf( ios_base::skipws);
         istreambuf_iterator<char> begin( input_file), end;
@@ -78,7 +126,7 @@ protected:
         scan_log( table, buffer.begin(), buffer.end());
 
 
-        output_file << "This data is generated using a beta-version of the run-file export tool v0.1. Do not use for production purposes\n";
+        output_file << "Data output van Race Technology opname apparaat\n";
         output_file << "Date Exported: " << boost::gregorian::day_clock::local_day() <<  '\n';
         output_file << "Start Time/Date of exported data: " << table.get_date() << '\n';
         output_file << std::string( 2, '\n');
@@ -96,7 +144,7 @@ private:
         columns.clear();
         boost::filesystem::ifstream input_file( p);
         if (!input_file) throw std::runtime_error( "could not open column definition file: " + p.string());
-        static const regex line( "(\\d+):(\\d+)\\s+=\\s*(.*)\\s*");
+        static const regex line( "(\\d+):(\\d+)\\s*=\\s*(.*)\\s*");
 
         string buffer;
         while ( std::getline( input_file, buffer))

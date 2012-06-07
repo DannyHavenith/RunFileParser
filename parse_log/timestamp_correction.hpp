@@ -108,16 +108,8 @@ public:
     /// When no upper range is provided, only the lower range will be used to filter
     void set_allowed_range( timestamp_type lower, timestamp_type upper = std::numeric_limits<timestamp_type>::max())
     {
-        if (lower <= upper)
-        {
-            lower_treshold = lower;
-            upper_treshold = upper;
-        }
-        else
-        {
-            lower = 0;
-            upper =  std::numeric_limits<timestamp_type>::max();
-        }
+        lower_treshold = lower;
+        upper_treshold = upper;
     }
 
     ///
@@ -136,7 +128,10 @@ public:
         timestamp_type value = bytes_to_numbers::get_big_endian<3, unsigned long>( ++begin);
 
         // only allow time stamp values that are within reasonable limits. ignore all other time stamps.
-        if (value >= lower_treshold && value <= upper_treshold)
+        // note: I'm counting on unsigned integer underflow here. The reason for specifying the condition this way
+        // is that now I can now give a range like [max - 10, 10] and this will accept values from max-10 up to max and values
+        // from 0 to 10, with max being the maximum (24-bit) time stamp value.
+        if (value - lower_treshold <= upper_treshold)
         {
 
             // this line could be faster by pre-calculating offset = corrected_pivot - pivot * skew
@@ -287,7 +282,7 @@ class time_correction_ :  public boost::msm::front::state_machine_def<time_corre
 public:
     typedef boost::msm::front::state_machine_def<time_correction_<output_handler> > front_end;
     time_correction_( output_handler &output)
-    : correction( output)
+    : correction( output), first_gps_time(0), previous_gps_time(0), previous_timestamp(0), skew(1.0)
     {
 
     }
@@ -298,13 +293,22 @@ public:
      */
     void flush(unsigned long  timestamp, unsigned long  gps_time)
     {
-        unsigned long corrected_timestamp = ((previous_gps_time - first_gps_time) / gps_timestamp_ratio) + first_timestamp;
-        double skew = (static_cast<double>( gps_time - previous_gps_time)/ gps_timestamp_ratio) / (timestamp - previous_timestamp);
 
-        // set up the slope corrector and have it filter the contents of our buffer.
-        correction.set_skew(previous_timestamp, corrected_timestamp, skew);
+        if (timestamp > previous_timestamp)
+        {
+            // calculate the value that we think the time stamp should have, given the progression of gps time stamps.
+            // note that this value could be greater than 2^24, the maximum time stamp, but that is OK, we can just let the time stamps roll
+            // over to zero modulo  2^24
+            unsigned long corrected_timestamp = ((previous_gps_time - first_gps_time) / gps_timestamp_ratio) + first_timestamp;
+            skew = (static_cast<double>( gps_time - previous_gps_time)/ gps_timestamp_ratio) / (timestamp - previous_timestamp);
+
+            // set up the slope corrector and have it filter the contents of our buffer.
+            correction.set_skew(previous_timestamp, corrected_timestamp, skew);
+        }
+
+        // due to the way the range is treated, this will also work when timestamp is smaller than previous_timestamp by overflow.
+        // it will then simply allow the range [previous_timestamp, max_timestamp] and [0, timestamp].
         correction.set_allowed_range( previous_timestamp, timestamp);
-
         flush();
 
         previous_timestamp = timestamp;
@@ -336,8 +340,9 @@ public:
      */
     void store_first_timestamp(unsigned long  timestamp, unsigned long  gps_time)
     {
-        first_timestamp = previous_timestamp = timestamp;
+        previous_timestamp = timestamp;
         first_gps_time = previous_gps_time = gps_time;
+        skew = 1.0;
     }
 
 
@@ -357,7 +362,7 @@ public:
         template< typename FSM>
         void on_exit(const time_ev & t, FSM &fsm)
         {
-            fsm.store_first_timestamp(last_timestamp, last_gps_time);
+            fsm.store_first_timestamp(t.value, last_gps_time);
         }
     };
 
@@ -366,7 +371,7 @@ public:
         template< typename FSM>
         void on_exit(const time_ev & t, FSM &fsm)
         {
-            fsm.flush( last_timestamp, last_gps_time);
+            fsm.flush( t.value, last_gps_time);
         }
 
     };
@@ -377,7 +382,7 @@ public:
     typedef initial initial_state;
 
     // I need quite a lot of 'template' and 'typename' boilerplate here because the compiler can't make any assumptions anymore since frontend is a
-    // dependend name. Need to figure out a way to make this simpler, this beats the purpose (readability) of a state transition table.
+    // Dependent name. Need to figure out a way to make this simpler, this beats the purpose (readability) of a state transition table.
     struct transition_table :
         boost::mpl::vector<
         //                                  Start                                                                Event             Next
@@ -392,10 +397,16 @@ private:
     typedef std::vector<unsigned char> buffer_type;
     buffer_type         buffer;
     slope_correction<output_handler> correction;
-    unsigned long first_timestamp;
+
+    /// this is the value that we give the time stamp that is associated with the first gps time packet.
+    /// it can't be zero, because there might be time stamps before the first gps time packet and those
+    /// should get a lower value.
+    static const unsigned long first_timestamp = 15000;
+
     unsigned long first_gps_time;
     unsigned long previous_timestamp;
     unsigned long previous_gps_time;
+    double        skew;
 
     // ten times as many gps time ticks as timer ticks ( gps ticks are 1000/s while timer ticks are 100/s).
     const static unsigned long gps_timestamp_ratio = 10;
