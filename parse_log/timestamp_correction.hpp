@@ -19,6 +19,7 @@
 #include <boost/msm/front/state_machine_def.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/ref.hpp>
+#include <boost/cstdint.hpp>
 
 #include "messages.hpp"
 #include "bytes_to_numbers.hpp"
@@ -125,7 +126,7 @@ public:
     template< typename iterator>
     void handle( timestamp, iterator begin, iterator end)
     {
-        timestamp_type value = bytes_to_numbers::get_big_endian<3, unsigned long>( ++begin);
+        timestamp_type value = bytes_to_numbers::get_big_endian_u3( ++begin);
 
         // only allow time stamp values that are within reasonable limits. ignore all other time stamps.
         // note: I'm counting on unsigned integer underflow here. The reason for specifying the condition this way
@@ -459,7 +460,7 @@ public:
     {
        add_to_buffer( begin, end);
        state_machine::process_event(
-       typename state_machine::time_ev( bytes_to_numbers::get_big_endian<3, unsigned long>(++begin))
+       typename state_machine::time_ev( bytes_to_numbers::get_big_endian_u3(++begin))
                 );
     }
 
@@ -471,7 +472,7 @@ public:
     {
         add_to_buffer( begin, end);
         process_event(
-                typename state_machine::gps_ev( bytes_to_numbers::get_big_endian<4, unsigned long>(++begin))
+                typename state_machine::gps_ev( bytes_to_numbers::get_big_endian<boost::uint32_t>(++begin))
         );
     }
 

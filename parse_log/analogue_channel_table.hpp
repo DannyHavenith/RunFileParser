@@ -140,9 +140,9 @@ public:
     {
         const unsigned short header = *begin++;
         using bytes_to_numbers::get_big_endian;
-        boost::int32_t longitude = get_big_endian<4, boost::int32_t>( begin);
-        boost::int32_t latitude = get_big_endian<4, boost::int32_t>( begin + 4);
-        boost::int32_t accuracy = get_big_endian<4, boost::int32_t>( begin + 8);
+        boost::int32_t longitude = get_big_endian<boost::int32_t>( begin);
+        boost::int32_t latitude = get_big_endian<boost::int32_t>( begin + 4);
+        boost::int32_t accuracy = get_big_endian<boost::int32_t>( begin + 8);
         new_value( header, 0, static_cast<double>(longitude) * 0.0000001);
         new_value( header, 1, static_cast<double>(latitude) * 0.0000001);
         new_value( header, 2, static_cast<double>(accuracy) / 1000.0);
@@ -156,8 +156,8 @@ public:
         using bytes_to_numbers::get_big_endian;
 
         const unsigned short header = *begin++;
-        double lateral = get_big_endian< 2, int16_t>( begin);
-        double longitudinal = get_big_endian< 2, int16_t>( begin + 2);
+        double lateral = get_big_endian<int16_t>( begin);
+        double longitudinal = get_big_endian<int16_t>( begin + 2);
         new_value( header, 0, lateral / 256.0);
         new_value( header, 1, longitudinal / 256.0);
     }
@@ -170,7 +170,7 @@ public:
         const unsigned short header = *begin++;
 
         // in cm/s
-        double speed = get_big_endian<4, uint32_t>( begin);
+        double speed = get_big_endian<uint32_t>( begin);
         new_value( header, 0, speed * (3.6 / 100.0));
 
     }
@@ -192,7 +192,7 @@ public:
             byte h   = *begin++;
             byte day     = *begin++;
             byte month   = *begin++;
-            boost::uint16_t year= bytes_to_numbers::get_big_endian<2, uint16_t>(begin);
+            boost::uint16_t year= bytes_to_numbers::get_big_endian<uint16_t>(begin);
             try
             {
             date d( year, month, day);
@@ -214,7 +214,7 @@ public:
     {
         const unsigned short header = *begin++;
         using bytes_to_numbers::get_big_endian;
-        boost::uint32_t timestamp = get_big_endian<4, boost::uint32_t>( begin);
+        boost::uint32_t timestamp = get_big_endian<boost::uint32_t>( begin);
         new_value( header, 0, static_cast<double>(timestamp)/1000);
     }
 

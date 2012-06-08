@@ -26,7 +26,7 @@ struct text_printer : public rtlogs::messages_definition
     void print_value( timestamp, iterator begin, iterator end)
     {
 
-        unsigned long value = bytes_to_numbers::get_big_endian<3, unsigned long>( ++begin);
+        unsigned long value = bytes_to_numbers::get_big_endian_u3( ++begin);
         out << "\t(" << value << ")";
     }
 
@@ -38,7 +38,7 @@ struct text_printer : public rtlogs::messages_definition
         using namespace boost::gregorian;
 
         // get the numerical value.
-        unsigned long gps_timestamp = bytes_to_numbers::get_big_endian<4, unsigned long>(++begin);
+        unsigned long gps_timestamp = bytes_to_numbers::get_big_endian<boost::uint32_t>(++begin);
 
         static const date epoch( 2012, Jan, 1); //start with a known Sunday, 00:00:00.
         ptime timeval( epoch, milliseconds(gps_timestamp)); // calculate a day/time given the known Sunday offset.

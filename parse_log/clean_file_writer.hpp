@@ -54,7 +54,7 @@ struct clean_file_writer : public rtlogs::messages_definition
     {
         iterator current = begin;
         ++current;
-        unsigned long time_value = bytes_to_numbers::get_big_endian<3, unsigned long>( current);
+        unsigned long time_value = bytes_to_numbers::get_big_endian_u3( current);
 
         if (last_timestamp && (last_timestamp > time_value || time_value - last_timestamp > 5000))
         {
