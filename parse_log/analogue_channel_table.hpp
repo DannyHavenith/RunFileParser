@@ -142,7 +142,7 @@ public:
         using bytes_to_numbers::get_big_endian;
         boost::int32_t longitude = get_big_endian<boost::int32_t>( begin);
         boost::int32_t latitude = get_big_endian<boost::int32_t>( begin + 4);
-        boost::int32_t accuracy = get_big_endian<boost::int32_t>( begin + 8);
+        boost::int32_t accuracy = get_big_endian<boost::uint32_t>( begin + 8);
         new_value( header, 0, static_cast<double>(longitude) * 0.0000001);
         new_value( header, 1, static_cast<double>(latitude) * 0.0000001);
         new_value( header, 2, static_cast<double>(accuracy) / 1000.0);
