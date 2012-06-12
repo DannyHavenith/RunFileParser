@@ -35,8 +35,7 @@ namespace rtlogs
         /**
          * prepare a logscanner by giving it a reference to a reactor of which the 'handle' member function will be called.
          */
-        logscanner( reactor_type &reactor)
-        :reactor( reactor)
+        logscanner()
         {
             fill_handler_table();
         }
@@ -46,7 +45,7 @@ namespace rtlogs
          * When at some address 'a' no valid message is recognized, the scanner will try to continue at addres 'a+1' and repeat that until
          * a valid message is found.
          */
-        void scan( iterator begin, iterator end)
+        void scan( reactor_type &reactor, iterator begin, iterator end)
         {
             while (begin != end)
             {
@@ -284,7 +283,6 @@ namespace rtlogs
         }
 
         table_type      table;
-        reactor_type    &reactor;
     };
 
     /**
@@ -294,8 +292,8 @@ namespace rtlogs
     template<typename iterator, typename reactor>
     void scan_log( reactor &r, iterator begin, iterator end)
     {
-        logscanner<iterator, reactor> scanner( r);
-        scanner.scan( begin, end);
+        static logscanner<iterator, reactor> scanner;
+        scanner.scan( r, begin, end);
     }
 }
 

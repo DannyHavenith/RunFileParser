@@ -16,6 +16,7 @@
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
 #include "analogue_channel_table.hpp"
+#include "island_removal.hpp"
 
 using namespace std;
 using namespace timestamp_correction;
@@ -123,7 +124,12 @@ protected:
 
         // first, scan the input for parameters and first values.
         analogue_channel_table table( output_file, interval);
-        scan_log( table, buffer.begin(), buffer.end());
+
+        {
+            island_remover<analogue_channel_table> first_remover( table);
+            scan_log( first_remover, buffer.begin(), buffer.end());
+            first_remover.flush();
+        }
 
 
         output_file << "Data output van Race Technology opname apparaat\n";
@@ -135,7 +141,8 @@ protected:
         table.set_columns( columns);
         // now send the data, via the timestamp corrector
         timestamp_correction::time_correction<analogue_channel_table> corrector( table);
-        scan_log( corrector, buffer.begin(), buffer.end());
+        island_remover<timestamp_correction::time_correction<analogue_channel_table> > remover( corrector);
+        scan_log( remover, buffer.begin(), buffer.end());
     }
 
 private:

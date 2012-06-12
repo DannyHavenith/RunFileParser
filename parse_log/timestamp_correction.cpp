@@ -12,6 +12,7 @@
 #include "timestamp_correction.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
+#include "island_removal.hpp"
 
 using namespace std;
 using namespace timestamp_correction;
@@ -42,7 +43,8 @@ protected:
 
         binary_file_writer writer( output_file);
         timestamp_correction::time_correction<binary_file_writer> corrector( writer);
-        scan_log( corrector, buffer.begin(), buffer.end());
+        island_remover<timestamp_correction::time_correction<binary_file_writer> > remover( corrector);
+        scan_log( remover, buffer.begin(), buffer.end());
     }
 
 } timestamp_correction_tool_instance;

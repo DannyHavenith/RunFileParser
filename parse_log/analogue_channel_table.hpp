@@ -290,8 +290,13 @@ private:
             }
             else
             {
+                size_t relative_timestamp = silent_until - first_timestamp - reporting_period;
+                if (relative_timestamp != 0)
+                {
+                    output << '\n';
+                }
                 // print all values, in the order determined by the header array.
-                output << static_cast<double>(silent_until - first_timestamp - reporting_period)/100;
+                output << static_cast<double>(relative_timestamp)/100;
                 for (
                         header_vector::const_iterator header = headers.begin();
                         header != headers.end();
@@ -300,7 +305,6 @@ private:
                 {
                     output << separator << header->second->second;
                 }
-                output << '\n';
                 silent_until += reporting_period;
             }
         }
