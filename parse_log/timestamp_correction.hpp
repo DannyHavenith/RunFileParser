@@ -273,7 +273,7 @@ struct wedge_finder_ : public boost::msm::front::state_machine_def<wedge_finder_
  * The first state is the initial state, which is active as long as no TGT-wedge has been found (@see wedge_finder_).
  *
  * After the first wedge has been found, this machine remains in the searching state, returning to the searching
- * state with each wedge found. Whenever a wedge is found, the embedded slop correction object is configured and all message are flushed to
+ * state with each wedge found. Whenever a wedge is found, the embedded slope correction object is configured and all message are flushed to
  * its output stream.
  *
  */
@@ -295,7 +295,7 @@ public:
     void flush(unsigned long  timestamp, unsigned long  gps_time)
     {
 
-        if (timestamp > previous_timestamp)
+        if (timestamp > previous_timestamp && gps_time > previous_gps_time)
         {
             // calculate the value that we think the time stamp should have, given the progression of gps time stamps.
             // note that this value could be greater than 2^24, the maximum time stamp, but that is OK, we can just let the time stamps roll
