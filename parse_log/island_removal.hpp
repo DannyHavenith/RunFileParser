@@ -85,12 +85,12 @@ public:
     {
         if (last_was_error)
         {
-            add_to_buffer( begin, end);
+            this->add_to_buffer( begin, end);
         }
         else
         {
             flush();
-            bypass_buffer( message(), begin, end);
+            this->bypass_buffer( message(), begin, end);
         }
         last_was_error = false;
     }

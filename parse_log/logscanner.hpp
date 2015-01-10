@@ -220,7 +220,7 @@ namespace rtlogs
 
                 // do_check will increase i to be one-beyond the end of the message
                 // if the check succeeds.
-                if (!do_check(i, end)) return false;
+                if (!this->do_check(i, end)) return false;
 
                 // the checksum passes, process the message, but first process all
                 // garbage that was found before the successful checksum test.

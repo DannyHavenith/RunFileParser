@@ -447,7 +447,7 @@ public:
     template< typename message, typename iterator>
     void handle( message, iterator begin, iterator end)
     {
-        add_to_buffer( begin, end);
+        this->add_to_buffer( begin, end);
     }
 
     /// messages that cannot be parsed are ignored.
@@ -463,7 +463,7 @@ public:
     template< typename iterator>
     void handle( timestamp, iterator begin, iterator end)
     {
-       add_to_buffer( begin, end);
+       this->add_to_buffer( begin, end);
        state_machine::process_event(
        typename state_machine::time_ev( bytes_to_numbers::get_big_endian_u3(++begin))
                 );
@@ -475,8 +475,8 @@ public:
     template< typename iterator>
     void handle( gps_time_storage, iterator begin, iterator end)
     {
-        add_to_buffer( begin, end);
-        process_event(
+        this->add_to_buffer( begin, end);
+        this->process_event(
                 typename state_machine::gps_ev( bytes_to_numbers::get_big_endian<boost::uint32_t>(++begin))
         );
     }
