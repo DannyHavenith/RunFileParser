@@ -38,8 +38,8 @@ add_executable(
 	timestamp_correction.cpp
 	tnoify.cpp
 	)
-	
-target_link_libraries(parse_log ${Boost_LIBRARIES})	
+
+target_link_libraries(parse_log Boost::regex Boost::filesystem)	
 
 
 
