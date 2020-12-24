@@ -46,13 +46,13 @@ struct kml_writer : public rtlogs::messages_definition
         longitude = (longitude << 8) + *begin++;
         double longitude_double = longitude/10000000.0;
 
-        long_type lattitude = *begin++;
-        lattitude = (lattitude << 8) + *begin++;
-        lattitude = (lattitude << 8) + *begin++;
-        lattitude = (lattitude << 8) + *begin++;
-        double lattitude_double = lattitude/10000000.0;
+        long_type latitude = *begin++;
+        latitude = (latitude << 8) + *begin++;
+        latitude = (latitude << 8) + *begin++;
+        latitude = (latitude << 8) + *begin++;
+        double latitude_double = latitude/10000000.0;
 
-        out <<  "        " << longitude_double << ',' << lattitude_double << ",0.0\n";
+        out <<  "        " << longitude_double << ',' << latitude_double << ",0.0\n";
     }
 
     ~kml_writer()
