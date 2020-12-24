@@ -94,7 +94,7 @@ private:
         ++filename_suffix[0];
 
         // write a header to the file
-        static const char header[] = {0x98 , 0x1d , 0x00 , 0x00 , 0xc8 , 0x00 , 0x00 , 0x00};
+        static const unsigned char header[] = {0x98 , 0x1d , 0x00 , 0x00 , 0xc8 , 0x00 , 0x00 , 0x00};
         std::copy( header, header + sizeof header, ostreambuf_iterator( output));
     }
 

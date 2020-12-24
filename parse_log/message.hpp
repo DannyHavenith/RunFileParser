@@ -26,8 +26,8 @@ namespace rtlogs
     template< int code, int full_size>
     struct message
     {
-        static const size_t size = full_size;
-        static const size_t payload_size = (full_size == -1)?-1:full_size - 2;
+        static const int size = full_size;
+        static const int payload_size = (full_size == -1)?-1:full_size - 2;
         static const int header = code;
     };
 
@@ -37,8 +37,8 @@ namespace rtlogs
     template< int code_begin, int code_end, int full_size>
     struct message_range
     {
-        static const size_t size = full_size;
-        static const size_t payload_size = (full_size == -1)?-1:full_size - 2;
+        static const int size = full_size;
+        static const int payload_size = (full_size == -1)?-1:full_size - 2;
         static const int header_begin = code_begin;
         static const int header_end = code_end;
 
@@ -65,21 +65,21 @@ namespace rtlogs
     template< int bytes>
     struct unsigned_
     {
-        static const size_t size = bytes;
+        static const int size = bytes;
         typedef unsigned long value_type;
     };
 
     template<int bytes>
     struct signed_
     {
-        static const size_t size = bytes;
+        static const int size = bytes;
         typedef long value_type;
     };
 
     template< typename T>
     struct size
     {
-        static const size_t value = T::size;
+        static const int value = T::size;
     };
 
     /// a message with fully specified payload types.

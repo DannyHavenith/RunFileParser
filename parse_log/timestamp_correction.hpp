@@ -40,7 +40,7 @@ public:
     :output( output)
     {
         // write a header to the file
-       static const char header[] = {0x98 , 0x1d , 0x00 , 0x00 , 0xc8 , 0x00 , 0x00 , 0x00};
+       static const unsigned char header[] = {0x98 , 0x1d , 0x00 , 0x00 , 0xc8 , 0x00 , 0x00 , 0x00};
        std::copy( header, header + sizeof header, std::ostreambuf_iterator<char>( output));
     }
 
@@ -146,7 +146,7 @@ public:
             value = (value - pivot) * skew + corrected_pivot;
 
             // create a timestamp message.
-            unsigned char message[5] = { timestamp::header, value >> 16, value >> 8, value };
+            char message[5] = { timestamp::header, static_cast<char>(value >> 16), static_cast<char>(value >> 8), static_cast<char>(value) };
             message[4] = message[0] + message[1] + message[2] + message[3];
             output.handle( timestamp(), message, message + 5);
             //std::copy( message, message + 5, std::ostreambuf_iterator<char>( output));
