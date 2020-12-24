@@ -66,7 +66,7 @@ struct messages_definition
     struct new_led_data     : message<77, 3>    { static const char *description() { return  "New LED Data Channel";}};
     struct precalc_distance_data : message<78, 6>{ static const char *description() { return  "Pre Calculated Distance Data Channel";}};
     struct yaw_rates        : message<79, 4>    { static const char *description() { return  "Yaw Rates Channel";}};
-    struct calculated_yaw   : message<80, 4>    { static const char *description() { return  "Calculated Yaw Channel";}};
+    struct calculated_yaw   : message<80, 5>    { static const char *description() { return  "Calculated Yaw Channel";}};
     struct pitch_rate       : message<81, 5>    { static const char *description() { return  "Pitch Rate Channel";}};
     struct pitch_angle      : message<82, 5>    { static const char *description() { return  "Pitch Angle Channel";}};
     struct roll_rate        : message<83, 5>    { static const char *description() { return  "Roll Rate Channel";}};
