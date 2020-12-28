@@ -13,11 +13,12 @@
 #ifndef GPS_TIME_PRINTER_HPP_
 #define GPS_TIME_PRINTER_HPP_
 
+#include "bytes_to_numbers.hpp"
+#include "messages.hpp"
 
 #include <iostream>
 #include <iomanip>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include "messages.hpp"
 
 
 /**
@@ -54,14 +55,14 @@ struct gps_timestamp_printer : public rtlogs::messages_definition
     {
         using namespace boost::posix_time;
         using namespace boost::gregorian;
+        using namespace bytes_to_numbers;
 
         ++begin; // skip header
 
         // extract gps timestamp (4-byte, big-endian, unsigned integer)
-        unsigned long gps_timestamp = *begin++;
-        gps_timestamp = (gps_timestamp << 8) + * begin++;
-        gps_timestamp = (gps_timestamp << 8) + * begin++;
-        gps_timestamp = (gps_timestamp << 8) + * begin++;
+        const auto gps_timestamp = get_big_endian<uint32_t>( begin);
+        std::advance( begin, 4);
+        // gps_timestamp now contains the number of milliseconds since 00:00:00 on Sunday.
 
         static const date start( 2012, Jan, 1); //start with a known Sunday, 00:00:00.
         ptime timeval( start, milliseconds(gps_timestamp)); // calculate a day/time given the known Sunday offset.

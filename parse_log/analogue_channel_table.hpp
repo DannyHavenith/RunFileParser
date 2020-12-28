@@ -196,22 +196,19 @@ public:
             byte s = *begin++;
             byte m = *begin++;
             byte h   = *begin++;
-            byte day     = *begin++;
-            byte month   = *begin++;
+            byte day = *begin++;
+            byte month = *begin++;
             boost::uint16_t year= bytes_to_numbers::get_big_endian<uint16_t>(begin);
             try
             {
-            date d( year, month, day);
-            ptime result( d, hours(h) + minutes(m) +seconds(s));
-            first_date = result;
+                date d( year, month, day);
+                ptime result( d, hours(h) + minutes(m) +seconds(s));
+                first_date = result;
             }
             catch (std::exception&)
             {
                   // intentionally left blank. just don't assign to first date in case of trouble.
             }
-
-            byte offset = begin[2];
-
         }
     }
 
@@ -296,13 +293,8 @@ private:
             }
             else
             {
-                size_t relative_timestamp = silent_until - first_timestamp - reporting_period;
-                if (relative_timestamp != 0)
-                {
-                    output << '\n';
-                }
                 // print all values, in the order determined by the header array.
-                output << static_cast<double>(relative_timestamp)/100;
+                output << static_cast<double>(silent_until - first_timestamp - reporting_period)/100;
                 for (
                         header_vector::const_iterator header = headers.begin();
                         header != headers.end();
@@ -311,6 +303,7 @@ private:
                 {
                     output << separator << header->second->second;
                 }
+                output << '\n';
                 silent_until += reporting_period;
             }
         }

@@ -32,7 +32,7 @@ namespace rtlogs
     };
 
     /// the symbol 'var' is used in the size part of messages to signify a variable size message.
-    static const int var = -1;
+    constexpr int var = -1;
 
     template< int code_begin, int code_end, int full_size>
     struct message_range

@@ -8,7 +8,6 @@
 cmake_minimum_required(VERSION 3.0)
 
 project(parse_logs)
-add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 
 SET(Boost_USE_STATIC_LIBS ON)
 SET(Boost_USE_MULTITHREAD ON)

@@ -24,6 +24,8 @@ add_executable(
 	timestamp_reporter.hpp
 	tool_implementation.hpp
 	toolregistry.hpp
+	data_at_event.hpp
+	
 	
 	parse_log.cpp
 	toolregistry.cpp
@@ -37,6 +39,8 @@ add_executable(
 	kml_writer.cpp
 	timestamp_correction.cpp
 	tnoify.cpp
+    data_at_event.cpp
+    message_names.cpp
 	)
 
 target_link_libraries(parse_log Boost::regex Boost::filesystem)	

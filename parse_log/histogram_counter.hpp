@@ -13,6 +13,7 @@
 #ifndef HISTOGRAM_COUNTER_HPP_
 #define HISTOGRAM_COUNTER_HPP_
 #include <ostream>
+#include "message_names.hpp"
 #include "messages.hpp"
 #include "parse_error.hpp"
 
@@ -44,7 +45,7 @@ struct histogram_counter : public rtlogs::messages_definition
         {
             if (message_count[i])
             {
-                out << i << '\t' << message_count[i]<< '\t' << byte_count[i] << '\n';
+                out << get_message_name(i) << '\t' << i << '\t' << message_count[i]<< '\t' << byte_count[i] << '\n';
             }
         }
     }
