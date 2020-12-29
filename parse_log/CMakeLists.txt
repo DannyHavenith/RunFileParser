@@ -43,7 +43,11 @@ add_executable(
     message_names.cpp
 	)
 
-target_link_libraries(parse_log Boost::regex Boost::filesystem)	
+target_link_libraries(
+    parse_log
+    PUBLIC
+        project_options 
+        CONAN_PKG::boost)	
 
 
 
