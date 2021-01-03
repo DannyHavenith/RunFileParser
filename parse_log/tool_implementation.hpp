@@ -89,7 +89,7 @@ struct single_file_tool : public tool_impl
             ifstream file( argv[0], ios_base::binary);
             if (!file)
             {
-                throw runtime_error( string("could not open file: ") + argv[1]);
+                throw runtime_error( string("could not open file: ") + argv[0]);
             }
 
             // copy the file contents into a buffer
