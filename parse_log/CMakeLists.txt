@@ -46,8 +46,9 @@ add_executable(
 target_link_libraries(
     parse_log
     PUBLIC
+        CONAN_PKG::boost
         project_options 
-        CONAN_PKG::boost)	
+        )	
 
 
 
