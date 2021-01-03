@@ -12,12 +12,14 @@
 
 #ifndef LOGSCANNER_HPP_
 #define LOGSCANNER_HPP_
+#include "message.hpp"
+#include "messages.hpp"
+#include "parse_error.hpp"
 #include <algorithm>
 #include <boost/utility/enable_if.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/adapted/mpl.hpp>
 #include <boost/fusion/include/mpl.hpp>
-#include "parse_error.hpp"
 
 
 namespace rtlogs
@@ -284,7 +286,7 @@ namespace rtlogs
         void fill_handler_table( )
         {
             std::fill( table, table + 256, &null_handler::instance());
-            boost::fusion::for_each( messages_definition::list(), cell_filler(table));
+            boost::fusion::for_each( messages_definition::list{}, cell_filler(table));
         }
 
         table_type      table;

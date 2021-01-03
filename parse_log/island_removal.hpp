@@ -12,6 +12,8 @@
 
 #ifndef ISLAND_REMOVAL_HPP_
 #define ISLAND_REMOVAL_HPP_
+#include "logscanner.hpp"
+#include "parse_error.hpp"
 #include <vector>
 
 /**

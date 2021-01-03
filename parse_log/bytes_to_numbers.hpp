@@ -12,10 +12,10 @@
 
 #ifndef BYTES_TO_NUMBERS_HPP_
 #define BYTES_TO_NUMBERS_HPP_
-
+#include <cstdint>
 namespace bytes_to_numbers
 {
-    template< size_t size, typename T, typename iterator>
+    template< std::size_t size, typename T, typename iterator>
     struct big_endian_extractor
     {
         static T extract( iterator &begin)
@@ -46,7 +46,6 @@ namespace bytes_to_numbers
     {
         return big_endian_extractor< 3, unsigned int, iterator>::extract( begin);
     }
-
 }
 
 #endif /* BYTES_TO_NUMBERS_HPP_ */

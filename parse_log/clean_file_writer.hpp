@@ -12,6 +12,7 @@
 
 #ifndef CLEAN_FILE_WRITER_HPP_
 #define CLEAN_FILE_WRITER_HPP_
+#include <iostream>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem.hpp>
 #include "messages.hpp"
