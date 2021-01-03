@@ -14,6 +14,10 @@
 #ifndef ANALOGUE_CHANNEL_TABLE_HPP_
 #define ANALOGUE_CHANNEL_TABLE_HPP_
 
+#include "messages.hpp"
+#include "bytes_to_numbers.hpp"
+#include "message_names.hpp"
+
 #include <map>
 #include <algorithm>
 #include <utility> // for std::pair, std::make_pair
@@ -26,8 +30,6 @@
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "boost/lexical_cast.hpp"
 
-#include "messages.hpp"
-#include "bytes_to_numbers.hpp"
 
 /**
  * This class generates a tab-separated text file with all floating point values found in the file.
@@ -58,6 +60,9 @@ public:
     {
     }
 
+    analogue_channel_table( const analogue_channel_table &) = delete;
+    analogue_channel_table &operator=( analogue_channel_table&) = delete;
+
     boost::posix_time::ptime get_date() const
     {
         return first_date;
@@ -75,24 +80,20 @@ public:
 
     void set_scanning( bool new_scanning)
     {
-        using boost::lambda::bind;
-        using boost::lambda::_1;
         scanning = new_scanning;
         if (!scanning)
         {
             headers.clear();
             reset_values();
             for (
-                    map_type::const_iterator valueIt = values.begin();
+                    auto valueIt = values.begin();
                     valueIt != values.end();
                     ++valueIt
                  )
             {
-                headers.push_back(
-                        std::make_pair(
-                                boost::lexical_cast<std::string>( valueIt->first.first) + ":" + boost::lexical_cast<std::string>( valueIt->first.second)
-                                , valueIt
-                        )
+                headers.emplace_back(
+                                get_message_name(valueIt->first.first) + ":" + std::to_string( valueIt->first.second),
+                                valueIt
                 );
             }
             print_header();
@@ -108,14 +109,10 @@ public:
     {
         headers.clear();
         values = first_values;
-        for (
-                column_info::const_iterator col = columns.begin();
-                col != columns.end();
-                ++col
-             )
+        for ( const auto &col : columns)
         {
-            map_type::iterator valueIt = values.insert( std::make_pair(col->first, 0.0)).first;
-            headers.push_back( std::make_pair( col->second, valueIt));
+            map_type::iterator valueIt = values.insert( {col.first, 0.0}).first;
+            headers.push_back( {col.second, valueIt});
         }
         print_header();
         scanning = false;
@@ -124,6 +121,9 @@ public:
         first_timestamp = 0;
      }
 
+    /**
+     * ignore all messages that are not explicitly handled
+     */
     void handle( ...)
     {
     }
@@ -271,13 +271,9 @@ private:
     void print_header()
     {
         output << "time [s]";
-        for (
-                header_vector::const_iterator header = headers.begin();
-                header != headers.end();
-                ++header
-             )
+        for ( const auto &header: headers)
         {
-            output << separator << header->first;
+            output << separator << header.first;
         }
         output << '\n';
     }
@@ -295,13 +291,9 @@ private:
             {
                 // print all values, in the order determined by the header array.
                 output << static_cast<double>(silent_until - first_timestamp - reporting_period)/100;
-                for (
-                        header_vector::const_iterator header = headers.begin();
-                        header != headers.end();
-                        ++header
-                     )
+                for ( const auto &header : headers)
                 {
-                    output << separator << header->second->second;
+                    output << separator << header.second->second;
                 }
                 output << '\n';
                 silent_until += reporting_period;
