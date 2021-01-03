@@ -20,7 +20,7 @@ struct analogue_channel_table_tool : public rtlogs::single_file_tool
     analogue_channel_table_tool()
             :single_file_tool( "values") {};
 
-    virtual void run( const buffer_type &buffer,  const std::string &)
+    void run( const buffer_type &buffer,  const std::string &) override
     {
         analogue_channel_table table(std::cout) ;
         scan_log( table, buffer.begin(), buffer.end());

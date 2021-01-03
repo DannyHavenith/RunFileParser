@@ -47,18 +47,17 @@ public:
 
 protected:
 
-  virtual ~punctuation_facet()
-  {
-  };
+  ~punctuation_facet() override
+  = default;
 
-  virtual CharType do_decimal_point() const
+  CharType do_decimal_point() const override
   {
     return decimalPoint_;
   }
 
 private:
 
-  punctuation_facet& operator=(const punctuation_facet& rhs);
+  punctuation_facet& operator=(const punctuation_facet& rhs) = delete;
   const CharType decimalPoint_;
 };
 
@@ -70,7 +69,7 @@ struct tnoify_tool : public rtlogs::input_output_tool
 
 protected:
 
-    virtual path invent_target_name( const path &source)
+    path invent_target_name( const path &source) override
     {
         if (extension( source) == ".run")
         {
@@ -82,7 +81,7 @@ protected:
         }
     }
 
-    virtual void handle_options( )
+    void handle_options( ) override
     {
         string settingsfile;
         if (!get_option( "f", settingsfile, ""))
@@ -95,9 +94,9 @@ protected:
 
     }
 
-    virtual void run_on_file( const path &from, const path &to)
+    void run_on_file( const path &from, const path &to) override
     {
-        typedef std::vector<unsigned char> buffer_type;
+        using buffer_type = std::vector<unsigned char>;
 
         path csvfile = to;
         if (extension( csvfile) == ".run")
@@ -112,14 +111,14 @@ protected:
         // set the date/time format for the output file to produce dates like:
         // "01-12-2012 13:01:10"
         using boost::posix_time::time_facet;
-        time_facet *facet(new time_facet("%d-%m-%Y %H:%M:%S"));
+        auto *facet(new time_facet("%d-%m-%Y %H:%M:%S"));
         output_file.imbue( std::locale( output_file.getloc(), facet));
 
         using boost::gregorian::date_facet;
-        date_facet *dfacet(new date_facet("%d-%m-%Y"));
+        auto *dfacet(new date_facet("%d-%m-%Y"));
         output_file.imbue( std::locale( output_file.getloc(), dfacet));
 
-        punctuation_facet<char> *pfacet( new punctuation_facet<char>(','));
+        auto *pfacet( new punctuation_facet<char>(','));
         output_file.imbue( std::locale( output_file.getloc(), pfacet));
 
         // copy the file contents into a buffer
@@ -156,7 +155,7 @@ private:
         columns.clear();
         boost::filesystem::ifstream input_file( p);
         if (!input_file) throw std::runtime_error( "could not open column definition file: " + p.string());
-        static const regex line( "(\\d+):(\\d+)\\s*=\\s*(.*)\\s*");
+        static const regex line( R"((\d+):(\d+)\s*=\s*(.*)\s*)");
 
         string buffer;
         while ( std::getline( input_file, buffer))

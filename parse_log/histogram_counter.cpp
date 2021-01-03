@@ -19,7 +19,7 @@ struct histogram_counter_tool : public rtlogs::single_file_tool
     histogram_counter_tool()
             :single_file_tool( "histogram") {};
 
-    virtual void run( const buffer_type &buffer,  const std::string &)
+    void run( const buffer_type &buffer,  const std::string &) override
     {
         histogram_counter counter;
         scan_log( counter, buffer.begin(), buffer.end());

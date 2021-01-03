@@ -82,7 +82,7 @@ struct timestamp_reporter : public rtlogs::messages_definition
 
     template< typename message, typename iterator> void handle( message, iterator, iterator) {}; // ignore everything else.
 
-    bool gps_found( ) const
+    [[nodiscard]] bool gps_found( ) const
     {
         return found_gps;
     }

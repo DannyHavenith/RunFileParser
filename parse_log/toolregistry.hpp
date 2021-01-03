@@ -20,10 +20,10 @@ namespace rtlogs
 
 struct tool
 {
-    virtual std::string get_name() const = 0;
-    virtual std::string get_argument_help() const = 0;
+    [[nodiscard]] virtual std::string get_name() const = 0;
+    [[nodiscard]] virtual std::string get_argument_help() const = 0;
     virtual int run( int argc, char *argv[]) = 0;
-    virtual ~tool(){};
+    virtual ~tool()= default;;
 };
 
 class tool_registry
@@ -38,8 +38,8 @@ public:
     void register_tool( tool *new_tool);
 
 private:
-    tool_registry(){};
-    ~tool_registry(){};
+    tool_registry() = default;
+    ~tool_registry() = default;
 };
 
 } /* namespace rtlogs */

@@ -22,7 +22,7 @@ struct timestamp_reporter_tool : public rtlogs::single_file_tool
     timestamp_reporter_tool()
             :single_file_tool( "timestamp") {};
 
-    virtual void run( const buffer_type &buffer, const std::string &filename)
+    void run( const buffer_type &buffer, const std::string &filename) override
     {
         timestamp_reporter printer( cout);
         scan_log( printer, buffer.begin(), buffer.end());

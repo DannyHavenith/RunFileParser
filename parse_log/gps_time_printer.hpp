@@ -19,6 +19,7 @@
 #include <iostream>
 #include <iomanip>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <utility>
 
 
 /**
@@ -30,8 +31,8 @@
  */
 struct gps_timestamp_printer : public rtlogs::messages_definition
 {
-    gps_timestamp_printer( std::ostream &out, std::ostream &error, const std::string &filename)
-        :out( out), error( error), filename(filename), last_timestamp(0), last_gps_timestamp(0), last_timestamp_at_gps(0), slow_clock_count(0) {};
+    gps_timestamp_printer( std::ostream &out, std::ostream &error, std::string filename)
+        :out( out), error( error), filename(std::move(filename)), last_timestamp(0), last_gps_timestamp(0), last_timestamp_at_gps(0), slow_clock_count(0) {};
 
     /// do nothing with most messages.
     void handle( ...)

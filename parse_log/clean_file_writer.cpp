@@ -22,7 +22,7 @@ struct clean_file_writer_tool : public rtlogs::single_file_tool
     clean_file_writer_tool()
             :single_file_tool( "clean") {};
 
-    virtual void run( const buffer_type &buffer, const std::string &filename)
+    void run( const buffer_type &buffer, const std::string &filename) override
     {
         clean_file_writer writer( filename);
         scan_log( writer, buffer.begin(), buffer.end());

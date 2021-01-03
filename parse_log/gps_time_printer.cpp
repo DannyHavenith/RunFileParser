@@ -21,7 +21,7 @@ struct gps_timestamp_printer_tool : public rtlogs::single_file_tool
     gps_timestamp_printer_tool()
             :single_file_tool( "gpstime") {};
 
-    virtual void run( const buffer_type &buffer, const std::string &filename)
+    void run( const buffer_type &buffer, const std::string &filename) override
     {
         // now scan the log bytes in the buffer.
         gps_timestamp_printer printer(std::cout, std::cerr, filename);

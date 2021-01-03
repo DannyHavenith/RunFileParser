@@ -66,14 +66,14 @@ namespace rtlogs
     struct unsigned_
     {
         static const int size = bytes;
-        typedef unsigned long value_type;
+        using value_type = unsigned long;
     };
 
     template<int bytes>
     struct signed_
     {
         static const int size = bytes;
-        typedef long value_type;
+        using value_type = long;
     };
 
     template< typename T>
@@ -86,20 +86,7 @@ namespace rtlogs
     template <int header, typename type1 = nothing, typename type2 = nothing, typename type3 = nothing>
     struct detailed_message : public message< header, size<type1>::value + size<type2>::value + size<type3>::value + 2>
     {
-        typedef typename
-                mpl::if_<
-                    boost::is_same< type1, nothing>,
-                    mpl::vector<>,
-                    typename mpl::if_<
-                        boost::is_same< type2, nothing>,
-                        mpl::vector<type1>,
-                        typename mpl::if_<
-                            boost::is_same< type3, nothing>,
-                            mpl::vector<type1, type2>,
-                            mpl::vector<type1, type2, type3>
-                        >::type
-                    >::type
-                >::type  parts;
+        using parts = typename mpl::if_<boost::is_same<type1, nothing>, mpl::vector<>, typename mpl::if_<boost::is_same<type2, nothing>, mpl::vector<type1>, typename mpl::if_<boost::is_same<type3, nothing>, mpl::vector<type1, type2>, mpl::vector<type1, type2, type3> >::type>::type>::type;
     };
 
 }

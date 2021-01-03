@@ -15,6 +15,7 @@
 #include <iostream>
 #include <fstream>
 #include <iterator>
+#include <utility>
 #include <vector>
 #include <string>
 #include <map>
@@ -34,15 +35,15 @@ namespace rtlogs
  */
 struct tool_impl : public tool
 {
-    tool_impl( const std::string &name, const std::string argument_help)
-    :name( name), argument_help( argument_help) {}
+    tool_impl( std::string name, const std::string argument_help)
+    :name(std::move( name)), argument_help( argument_help) {}
 
-    virtual std::string get_name() const
+    [[nodiscard]] std::string get_name() const override
     {
         return name;
     }
 
-    virtual std::string get_argument_help() const
+    [[nodiscard]] std::string get_argument_help() const override
     {
         return argument_help;
     }
@@ -72,7 +73,7 @@ struct single_file_tool : public tool_impl
 
     virtual void run( const buffer_type &buffer, const std::string &filename) = 0;
 
-    virtual int run( int argc, char *argv[])
+    int run( int argc, char *argv[]) override
     {
         using namespace std;
 
@@ -126,10 +127,10 @@ struct single_file_tool : public tool_impl
  */
 struct input_output_tool : public tool_impl
 {
-    input_output_tool( const std::string &name, const std::string &prefix)
-            : tool_impl( name, "<source>... [destination]"), prefix( prefix) {}
+    input_output_tool( const std::string &name, std::string prefix)
+            : tool_impl( name, "<source>... [destination]"), prefix(std::move( prefix)) {}
 
-    virtual int run(int argc, char *argv[])
+    int run(int argc, char *argv[]) override
     {
         std::vector<std::string> arguments( argv, argv + argc);
         harvest_options( arguments);
@@ -180,7 +181,7 @@ protected:
     template<typename T, typename U>
     bool get_option( const std::string &option, T& value, U default_value) const
     {
-        OptionMap::const_iterator i = options.find( option);
+        auto i = options.find( option);
         if (i != options.end())
         {
 
@@ -201,8 +202,8 @@ protected:
         }
 
     }
-    typedef std::map< std::string, std::string> OptionMap;
-    typedef boost::filesystem::path path;
+    using OptionMap = std::map<std::string, std::string>;
+    using path = boost::filesystem::path;
     virtual void run_on_file(const path & from, const path & to) =0;
 
     /**
@@ -220,7 +221,7 @@ protected:
 
 
 private:
-    typedef std::vector<std::string> StringVector;
+    using StringVector = std::vector<std::string>;
 
     /**
      * Very simple option handling: anything that starts with a minus sign will be considered a one-argument option
@@ -228,7 +229,7 @@ private:
      */
     void harvest_options( StringVector &arguments)
     {
-        StringVector::iterator argument = arguments.begin();
+        auto argument = arguments.begin();
         while (argument != arguments.end())
         {
             if ((*argument)[0] == '-')
@@ -276,7 +277,7 @@ private:
     {
         using boost::filesystem::directory_iterator;
         bool directory_created = false;
-        typedef std::vector<path> path_vector;
+        using path_vector = std::vector<path>;
         path_vector subdirs;
         for(directory_iterator i(from);i != directory_iterator();++i)
         {
@@ -298,9 +299,9 @@ private:
             }
         }
 
-        for (path_vector::const_iterator i = subdirs.begin(); i != subdirs.end();++i)
+        for (const auto & subdir : subdirs)
         {
-            run_on_directories( from / *i, to / i->filename());
+            run_on_directories( from / subdir, to / subdir.filename());
         }
 
     }

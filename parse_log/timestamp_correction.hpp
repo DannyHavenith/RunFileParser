@@ -237,7 +237,7 @@ struct wedge_finder_ : public boost::msm::front::state_machine_def<wedge_finder_
         }
     };
 
-    typedef searching initial_state;
+    using initial_state = searching;
 
     /// is the given time events value close to that of the previously offered time event?
     bool timestamps_close( const time_ev &time_event)
@@ -248,7 +248,7 @@ struct wedge_finder_ : public boost::msm::front::state_machine_def<wedge_finder_
     //**********
     // state transition table
     //**********
-    typedef wedge_finder_ wf;
+    using wf = wedge_finder_;
     struct transition_table : boost::mpl::vector<
     //       Start      Event           Next       Action               Guard
     //   +-----------+-----------------+-----------+---------------------+----------------------+
@@ -286,7 +286,7 @@ template< typename output_handler>
 class time_correction_ :  public boost::msm::front::state_machine_def<time_correction_<output_handler> >
 {
 public:
-    typedef boost::msm::front::state_machine_def<time_correction_<output_handler> > front_end;
+    using front_end = boost::msm::front::state_machine_def<time_correction_<output_handler> >;
     time_correction_( output_handler &output)
     : correction( output), first_gps_time(0), previous_gps_time(0), previous_timestamp(0), skew(1.0)
     {
@@ -360,8 +360,8 @@ public:
     }
 
 
-    typedef wedge_finder_::gps_ev gps_ev;
-    typedef wedge_finder_::time_ev time_ev;
+    using gps_ev = wedge_finder_::gps_ev;
+    using time_ev = wedge_finder_::time_ev;
     struct initial_ : public wedge_finder_
     {
 
@@ -381,11 +381,11 @@ public:
         }
 
     };
-    typedef boost::msm::back::state_machine<initial_ > initial;
-    typedef boost::msm::back::state_machine<searching_ > searching;
+    using initial = boost::msm::back::state_machine<initial_>;
+    using searching = boost::msm::back::state_machine<searching_>;
     //typedef typename front_end::template _row<  initial:: template exit_pt<typename initial::exit>      , time_ev         , searching> row1type;
 
-    typedef initial initial_state;
+    using initial_state = initial;
 
     // I need quite a lot of 'template' and 'typename' boilerplate here because the compiler can't make any assumptions anymore since frontend is a
     // Dependent name. Need to figure out a way to make this simpler, this beats the purpose (readability) of a state transition table.
@@ -400,7 +400,7 @@ public:
     };
 
 private:
-    typedef std::vector<unsigned char> buffer_type;
+    using buffer_type = std::vector<unsigned char>;
     buffer_type         buffer;
     slope_correction<output_handler> correction;
 
@@ -427,7 +427,7 @@ template< typename output_handler>
 class time_correction : public boost::msm::back::state_machine<time_correction_<output_handler> >, public rtlogs::messages_definition
 {
 public:
-    typedef boost::msm::back::state_machine<time_correction_<output_handler> > state_machine;
+    using state_machine = boost::msm::back::state_machine<time_correction_<output_handler> >;
 
     /// forward the reference parameter to the backend.
     /// we need create this constructor because the backend normally forwards all its constructor arguments

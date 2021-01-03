@@ -34,8 +34,8 @@ tool_registry &tool_registry::instance()
  */
 tool *tool_registry::find_tool(const std::string & name)
 {
-    tool *result = 0;
-    tool_map::const_iterator i = tools.find( name);
+    tool *result = nullptr;
+    auto i = tools.find( name);
     if (i != tools.end())
     {
         result = i->second;
@@ -48,7 +48,7 @@ tool *tool_registry::find_tool(const std::string & name)
  */
 std::ostream & tool_registry::print(std::ostream & out)
 {
-    for (tool_map::const_iterator i = tools.begin(); i != tools.end(); ++i)
+    for (auto i = tools.begin(); i != tools.end(); ++i)
     {
         out << i->second->get_name() << " " << i->second->get_argument_help() << '\n';
     }

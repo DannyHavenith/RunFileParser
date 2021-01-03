@@ -21,6 +21,7 @@
 #include <string>
 #include <iterator>
 #include <boost/cstdint.hpp>
+#include <utility>
 #include <vector>
 
 
@@ -30,10 +31,10 @@
 struct data_at_event : public rtlogs::messages_definition
 {
     data_at_event(
-            const std::string &sourceName,
+            std::string sourceName,
             std::ostream &out,
             bool emit_header = true)
-       :sourceName( sourceName),
+       :sourceName(std::move( sourceName)),
         out(out)
     {
         if (emit_header)

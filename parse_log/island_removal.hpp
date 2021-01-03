@@ -113,7 +113,7 @@ public:
     }
 
 private:
-    typedef buffering_message_handler<output_handler> buffer_type;
+    using buffer_type = buffering_message_handler<output_handler>;
     bool            last_was_error;
 };
 

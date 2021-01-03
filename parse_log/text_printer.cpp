@@ -21,7 +21,7 @@ struct text_printer_tool : public rtlogs::single_file_tool
     text_printer_tool()
             :single_file_tool( "txt") {};
 
-    virtual void run( const buffer_type &buffer, const std::string &)
+    void run( const buffer_type &buffer, const std::string &) override
     {
         text_printer printer( cout);
         scan_log( printer, buffer.begin(), buffer.end());

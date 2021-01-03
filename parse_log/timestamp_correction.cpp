@@ -31,7 +31,7 @@ struct timestamp_correction_tool : public rtlogs::input_output_tool
 
 protected:
 
-   virtual void run_on_file( const path &from, const path &to)
+   void run_on_file( const path &from, const path &to) override
     {
         typedef std::vector<unsigned char> buffer_type;
 

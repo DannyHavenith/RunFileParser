@@ -49,9 +49,7 @@ class analogue_channel_table : public rtlogs::messages_definition
 public:
 
     typedef std::pair<unsigned short, unsigned short>       channel_index;
-    typedef std::vector<
-            std::pair<channel_index, std::string>
-    > column_info;
+    using column_info = std::vector<std::pair<channel_index, std::string> >;
 
     analogue_channel_table( std::ostream& output,
             double reporting_period_in_seconds = 0.0) :
@@ -63,7 +61,7 @@ public:
     analogue_channel_table( const analogue_channel_table &) = delete;
     analogue_channel_table &operator=( analogue_channel_table&) = delete;
 
-    boost::posix_time::ptime get_date() const
+    [[nodiscard]] boost::posix_time::ptime get_date() const
     {
         return first_date;
     }
@@ -111,7 +109,7 @@ public:
         values = first_values;
         for ( const auto &col : columns)
         {
-            map_type::iterator valueIt = values.insert( {col.first, 0.0}).first;
+            auto valueIt = values.insert( {col.first, 0.0}).first;
             headers.push_back( {col.second, valueIt});
         }
         print_header();
@@ -186,7 +184,7 @@ public:
     template<typename iterator>
     void handle( date_storage, iterator begin, iterator end)
     {
-        typedef boost::uint8_t byte;
+        using byte = boost::uint8_t;
         using namespace boost::posix_time;
         using namespace boost::gregorian;
 
@@ -305,7 +303,7 @@ private:
     void new_value( unsigned short channel, unsigned short index, double value)
     {
         const channel_index key( channel, index);
-        map_type::iterator it = first_values.find( key);
+        auto it = first_values.find( key);
         if (it == first_values.end())
         {
             first_values[key] = value;
@@ -314,9 +312,9 @@ private:
         emit_values();
     }
 
-    typedef std::map<channel_index, double> map_type;
-    typedef std::vector< std::pair<std::string, map_type::const_iterator> > header_vector;
-    typedef map_type::value_type pair_type;
+    using map_type = std::map<channel_index, double>;
+    using header_vector = std::vector<std::pair<std::string, map_type::const_iterator> >;
+    using pair_type = map_type::value_type;
 
     map_type        values;
     map_type        first_values;

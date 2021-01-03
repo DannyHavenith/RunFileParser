@@ -21,7 +21,7 @@ struct kml_writer_tool : public rtlogs::single_file_tool
     kml_writer_tool()
             :single_file_tool( "kml") {};
 
-    virtual void run( const buffer_type &buffer, const std::string &)
+    void run( const buffer_type &buffer, const std::string &) override
     {
         // now scan the log bytes in the buffer.
         kml_writer printer(std::cout);

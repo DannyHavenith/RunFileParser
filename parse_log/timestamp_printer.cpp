@@ -21,7 +21,7 @@ struct timestamp_printer_tool : public rtlogs::single_file_tool
     timestamp_printer_tool()
             :single_file_tool( "timestamps") {};
 
-    virtual void run( const buffer_type &buffer, const std::string &)
+    void run( const buffer_type &buffer, const std::string &) override
     {
         // now scan the log bytes in the buffer.
         timestamp_printer printer(std::cout);

@@ -28,8 +28,8 @@ int main(int argc, char* argv[])
 
     try
     {
-        tool *the_tool = 0;
-        if (argc < 2 ||  0 == (the_tool = tool_registry::instance().find_tool( argv[1])))
+        tool *the_tool = nullptr;
+        if (argc < 2 ||  nullptr == (the_tool = tool_registry::instance().find_tool( argv[1])))
         {
             cerr << "usage: parse <command> [command options...]\n";
             cerr << "where command is one of:\n";
@@ -45,6 +45,6 @@ int main(int argc, char* argv[])
         cerr << "something went wrong: " << e.what() << '\n';
     }
 
-	return 0;
+    return 0;
 }
 
