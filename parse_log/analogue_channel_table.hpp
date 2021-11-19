@@ -176,7 +176,6 @@ public:
         // in cm/s
         double speed = get_big_endian<uint32_t>( begin);
         new_value( header, 0, speed * (3.6 / 100.0));
-
     }
     /**
      * Date values are handled by this class, but only to find the first reported date in the file.
@@ -239,7 +238,7 @@ public:
     }
 
     template<typename iterator>
-    void handle( external_percentage, iterator begin, iterator end)
+    void handle( external_auxiliary, iterator begin, iterator end)
     {
         handle(external_temperature(), begin, end);
     }

@@ -31,8 +31,8 @@ struct messages_definition
     struct raw_gps          : message<3, var>    { static const char *description() { return  "Raw GPS Data Input";}};
     struct new_sector_time  : message<4, 7>     { static const char *description() { return  "New Sector Time";}};
     struct new_lap_marker   : message<5, 21>    { static const char *description() { return  "New Lap Marker";}};
-    struct logger_storage   : message<6, 6>     { static const char *description() { return  "Logger Storage Channel";}};
-    struct gps_time_storage : message<7, 6>     { static const char *description() { return  "GPS Time Storage Channel";}};
+    struct logger_storage   : message<6, 6>     { static const char *description() { return  "Logger Storage";}};
+    struct gps_time_storage : message<7, 6>     { static const char *description() { return  "GPS Time Storage";}};
     struct accelerations    : message<8, 6>     { static const char *description() { return  "Accelerations";}};
     struct timestamp        : detailed_message< 9, unsigned_<3> >     { static const char *description() { return  "Time Stamp";}};
     struct gps_position     : message<10, 14>   { static const char *description() { return  "GPS Positional Data";}};
@@ -41,15 +41,15 @@ struct messages_definition
     struct frequency       : message_range<14, 19, 5>    { static const char *description() { return  "Frequency";}};
     struct serial_data_input: message<19, var>   { static const char *description() { return  "Serial Data Input";}};
     struct analogue        : message_range<20,52, 4>    { static const char *description() { return  "Analogue";}};
-    struct channel_data     : message<52, 67>   { static const char *description() { return  "Channel Data Channel";}};
-    struct display_data     : message<53, 11>   { static const char *description() { return  "Display Data Channel";}};
-    struct reflash          : message<54, 6>    { static const char *description() { return  "Reflash Channel";}};
-    struct date_storage     : message<55, 10>   { static const char *description() { return  "Date Storage Channel";}};
+    struct channel_data     : message<52, 67>   { static const char *description() { return  "Channel Data";}};
+    struct display_data     : message<53, 11>   { static const char *description() { return  "Display Data";}};
+    struct reflash          : message<54, 6>    { static const char *description() { return  "Reflash";}};
+    struct date_storage     : message<55, 10>   { static const char *description() { return  "Date Storage";}};
     struct gps_course       : message<56, 10>   { static const char *description() { return  "GPS Course Data";}};
     struct gps_accuracy     : message<57, 10>   { static const char *description() { return  "GPS Altitude and Speed Accuracy";}};
     struct extended_frequency : message_range<58, 62, 11>{ static const char *description() { return  "Extended Frequency";}};
     struct extended_rpm     : message<62, 11>   { static const char *description() { return  "Extended RPM";}};
-    struct start_of_run     : message<63, 3>    { static const char *description() { return  "Start of Run Channel";}};
+    struct start_of_run     : message<63, 3>    { static const char *description() { return  "Start of Run";}};
     struct processed_speed  : message<64, 5>    { static const char *description() { return  "Processed Speed Data";}};
     struct gear_setup       : message<65, 30>   { static const char *description() { return  "Gear Set Up Data";}};
     struct bargraph_setup   : message<66, 11>   { static const char *description() { return  "Bargraph Set Up Data";}};
@@ -58,32 +58,32 @@ struct messages_definition
     struct new_target_sector_time : message<69, 42> { static const char *description() { return  "New Target Sector Time";}};
     struct new_target_marker_time : message<70, 42> { static const char *description() { return  "New Target Marker Time";}};
     struct auxiliary_input  : message<71, 3>    { static const char *description() { return  "Auxiliary Input Module Number";}};
-    struct external_temperature : message<72, 5>{ static const char *description() { return  "External Temperature Channel";}};
-    struct external_frequency: message<73, 5>   { static const char *description() { return  "External Frequency Channel";}};
-    struct external_percentage : message<74, 5> { static const char *description() { return  "External Percentage Channel";}};
-    struct external_time    : message<75, 6>    { static const char *description() { return  "External Time Channel";}};
-    struct new_lcd_data     : message<76, 24>   { static const char *description() { return  "New LCD Data Channel";}};
-    struct new_led_data     : message<77, 3>    { static const char *description() { return  "New LED Data Channel";}};
-    struct precalc_distance_data : message<78, 6>{ static const char *description() { return  "Pre Calculated Distance Data Channel";}};
-    struct yaw_rates        : message<79, 4>    { static const char *description() { return  "Yaw Rates Channel";}};
-    struct calculated_yaw   : message<80, 5>    { static const char *description() { return  "Calculated Yaw Channel";}};
-    struct pitch_rate       : message<81, 5>    { static const char *description() { return  "Pitch Rate Channel";}};
-    struct pitch_angle      : message<82, 5>    { static const char *description() { return  "Pitch Angle Channel";}};
-    struct roll_rate        : message<83, 5>    { static const char *description() { return  "Roll Rate Channel";}};
-    struct roll_angle       : message<84, 5>    { static const char *description() { return  "Roll Angle Channel";}};
-    struct gradient         : message<85, 10>   { static const char *description() { return  "Gradient Channel";}};
+    struct external_temperature : message<72, 5>{ static const char *description() { return  "External Temperature";}};
+    struct external_frequency: message<73, 5>   { static const char *description() { return  "External Frequency";}};
+    struct external_auxiliary: message<74, 5> { static const char *description() { return  "External Auxiliary";}};
+    struct external_time    : message<75, 6>    { static const char *description() { return  "External Time";}};
+    struct new_lcd_data     : message<76, 24>   { static const char *description() { return  "New LCD Data";}};
+    struct new_led_data     : message<77, 3>    { static const char *description() { return  "New LED Data";}};
+    struct precalc_distance_data : message<78, 6>{ static const char *description() { return  "Pre Calculated Distance Data";}};
+    struct yaw_rates        : message<79, 4>    { static const char *description() { return  "Yaw Rates";}};
+    struct calculated_yaw   : message<80, 5>    { static const char *description() { return  "Calculated Yaw";}};
+    struct pitch_rate       : message<81, 5>    { static const char *description() { return  "Pitch Rate";}};
+    struct pitch_angle      : message<82, 5>    { static const char *description() { return  "Pitch Angle";}};
+    struct roll_rate        : message<83, 5>    { static const char *description() { return  "Roll Rate";}};
+    struct roll_angle       : message<84, 5>    { static const char *description() { return  "Roll Angle";}};
+    struct gradient         : message<85, 10>   { static const char *description() { return  "Gradient";}};
     struct pulse_count     : message_range<86, 90, 5>    { static const char *description() { return  "Pulse Count";}};
-    struct baseline         : message<90, 6>    { static const char *description() { return  "Baseline Channel";}};
-    struct unit_control     : message<91, 5>    { static const char *description() { return  "Unit Control Channel";}};
+    struct baseline         : message<90, 6>    { static const char *description() { return  "Baseline";}};
+    struct unit_control     : message<91, 5>    { static const char *description() { return  "Unit Control";}};
     struct z_acceleration   : message<92, 4>    { static const char *description() { return  "Z Acceleration";}};
-    struct external_angle   : message<93, 5>    { static const char *description() { return  "External Angle Channel";}};
-    struct external_pressure: message<94, 6>    { static const char *description() { return  "External Pressure Channel";}};
-    struct external_misc    : message<95, 5>    { static const char *description() { return  "External Miscellaneous Channel";}};
+    struct external_angle   : message<93, 5>    { static const char *description() { return  "External Angle";}};
+    struct external_pressure: message<94, 6>    { static const char *description() { return  "External Pressure";}};
+    struct external_misc    : message<95, 5>    { static const char *description() { return  "External Miscellaneous";}};
     struct time_into_current_lap : message<96, 10>  { static const char *description() { return  "Time in to current lap and sector";}};
     struct high_res_timer   : message<97, 8>    { static const char *description() { return  "High resolution event timer";}};
-    struct sector_definition: message<101, 19>  { static const char *description() { return  "Sector Definition Channel";}};
-    struct brakebox_to_pc   : message<102, var>  { static const char *description() { return  "BRAKEBOX to PC Communication Channel";}};
-    struct dvr_communication: message<103, 17>  { static const char *description() { return  "DVR Communication Channel";}};
+    struct sector_definition: message<101, 19>  { static const char *description() { return  "Sector Definition";}};
+    struct brakebox_to_pc   : message<102, var>  { static const char *description() { return  "BRAKEBOX to PC Communication";}};
+    struct dvr_communication: message<103, 17>  { static const char *description() { return  "DVR Communication";}};
     struct video_frame_index: message<104, 9>   { static const char *description() { return  "Video frame index";}};
     struct local_ned_velocities : message<105, 11>  { static const char *description() { return  "Local NED velocities";}};
     struct general_configuration : message<107, var> { static const char *description() { return  "General Configuration Message";}};
@@ -126,7 +126,7 @@ struct messages_definition
             auxiliary_input ,
             external_temperature ,
             external_frequency,
-            external_percentage ,
+            external_auxiliary ,
             external_time   ,
             new_lcd_data
             > commands2;

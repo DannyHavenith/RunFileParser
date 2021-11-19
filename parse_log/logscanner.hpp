@@ -293,7 +293,7 @@ namespace rtlogs
     };
 
     /**
-     * scan the log bytes provided through iterators begin and end, decode messages and call the approprate overload of
+     * scan the log bytes provided through iterators begin and end, decode messages and call the appropriate overload of
      * the 'handle' member function on the provided reactor type object.
      */
     template<typename iterator, typename reactor>

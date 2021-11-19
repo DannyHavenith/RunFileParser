@@ -41,6 +41,7 @@ add_executable(
 	tnoify.cpp
     data_at_event.cpp
     message_names.cpp
+    interpolate.cpp
 	)
 
 target_link_libraries(
