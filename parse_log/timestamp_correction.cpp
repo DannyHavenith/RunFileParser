@@ -10,14 +10,17 @@
  *      Author: danny
  */
 
-#include <iostream>
-#include <vector>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
 #include "timestamp_correction.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
 #include "island_removal.hpp"
+#include "binary_file_writer.hpp"
+
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+
+#include <iostream>
+#include <vector>
 
 using namespace std;
 using namespace timestamp_correction;
@@ -55,7 +58,4 @@ protected:
 } timestamp_correction_tool_instance;
 
 rtlogs::tool_registrar timestamp_correction_tool_registrar( &timestamp_correction_tool_instance);
-
-
-
 

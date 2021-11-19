@@ -10,10 +10,11 @@
  *      Author: danny
  */
 
-#include <iostream>
 #include "analogue_channel_table.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
+
+#include <iostream>
 
 struct analogue_channel_table_tool : public rtlogs::single_file_tool
 {

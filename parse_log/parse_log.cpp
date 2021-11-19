@@ -9,12 +9,13 @@
  */
 
 
+#include "toolregistry.hpp"
+
 #include <stdexcept>
 #include <string>
 #include <iostream>
 #include <exception>
 
-#include "toolregistry.hpp"
 
 void error( const std::string &what)
 {

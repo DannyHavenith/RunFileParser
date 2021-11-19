@@ -10,12 +10,9 @@
  *      Author: danny
  */
 
-#include <iostream>
 #include "clean_file_writer.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
-
-using namespace std;
 
 struct clean_file_writer_tool : public rtlogs::single_file_tool
 {

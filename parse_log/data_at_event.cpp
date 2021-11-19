@@ -11,10 +11,10 @@
  */
 
 #include "data_at_event.hpp"
-
-#include <iostream>
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
+
+#include <iostream>
 
 
 struct data_at_event_tool : public rtlogs::single_file_tool

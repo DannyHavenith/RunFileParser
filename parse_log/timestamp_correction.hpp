@@ -12,12 +12,10 @@
 
 #ifndef TIMESTAMP_CORRECTION_HPP_
 #define TIMESTAMP_CORRECTION_HPP_
-#include <vector>
-#include <iterator>
-#include <limits>
-#include <iostream>
-#include <iterator>
-#include <algorithm>
+
+#include "messages.hpp"
+#include "bytes_to_numbers.hpp"
+#include "logscanner.hpp"
 
 // boost meta state machine includes
 #include <boost/msm/back/state_machine.hpp>
@@ -26,37 +24,12 @@
 #include <boost/ref.hpp>
 #include <boost/cstdint.hpp>
 
-#include "messages.hpp"
-#include "bytes_to_numbers.hpp"
-#include "logscanner.hpp"
-
-/**
- * A simple handler class that will just write all parsed messages to a given output file.
- */
-class binary_file_writer
-{
-public:
-    binary_file_writer( std::ostream &output)
-    :output( output)
-    {
-        // write a header to the file
-       static const unsigned char header[] = {0x98 , 0x1d , 0x00 , 0x00 , 0xc8 , 0x00 , 0x00 , 0x00};
-       std::copy( header, header + sizeof header, std::ostreambuf_iterator<char>( output));
-    }
-
-    /**
-     * all messages are just written verbatim to the output file.
-     */
-    template<typename message, typename iterator>
-    void handle( message, iterator begin, iterator end)
-    {
-        std::copy( begin, end, std::ostreambuf_iterator<char>( output));
-    }
-
-private:
-    std::ostream &output;
-};
-
+#include <vector>
+#include <iterator>
+#include <limits>
+#include <iostream>
+#include <iterator>
+#include <algorithm>
 
 namespace timestamp_correction
 {

@@ -6,11 +6,11 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 //
 #include "message_names.hpp"
+#include "messages.hpp"
 
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/adapted/mpl.hpp>
 
-#include "messages.hpp"
 #include <vector>
 #include <string>
 

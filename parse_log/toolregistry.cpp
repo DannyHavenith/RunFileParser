@@ -10,9 +10,10 @@
  *      Author: danny
  */
 
+#include "toolregistry.hpp"
+
 #include <map>
 #include <iostream>
-#include "toolregistry.hpp"
 
 namespace
 {

@@ -9,10 +9,11 @@
  *  Created on: Feb 26, 2012
  *      Author: danny
  */
-#include <iostream>
 #include "text_printer.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
+
+#include <iostream>
 
 using namespace std;
 

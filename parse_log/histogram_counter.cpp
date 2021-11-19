@@ -9,10 +9,11 @@
  *  Created on: Feb 26, 2012
  *      Author: danny
  */
-#include <iostream>
 #include "histogram_counter.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
+
+#include <iostream>
 
 struct histogram_counter_tool : public rtlogs::single_file_tool
 {

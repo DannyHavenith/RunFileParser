@@ -10,11 +10,11 @@
  *      Author: danny
  */
 
-#include <iostream>
 #include "gps_time_printer.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
 
+#include <iostream>
 
 struct gps_timestamp_printer_tool : public rtlogs::single_file_tool
 {

@@ -10,10 +10,11 @@
  *      Author: danny
  */
 
-#include <iostream>
 #include "timestamp_reporter.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
+
+#include <iostream>
 
 using namespace std;
 

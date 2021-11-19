@@ -29,6 +29,7 @@ conan_cmake_run(
         CMAKE_TARGETS # individual targets to link to
     BUILD
         missing
+    BUILD_TYPE Release
     ${EXTRA_PROFILE}
 )
 

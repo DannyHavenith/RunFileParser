@@ -10,18 +10,20 @@
  *      Author: danny
  */
 
-#include <iostream>
-#include <vector>
-#include <string>
-#include <locale>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/regex.hpp>
 #include "timestamp_correction.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
 #include "analogue_channel_table.hpp"
 #include "island_removal.hpp"
+
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/regex.hpp>
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <locale>
 
 using namespace std;
 using namespace timestamp_correction;
