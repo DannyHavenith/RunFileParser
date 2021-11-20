@@ -150,7 +150,6 @@ public:
         new_value( header, 0, static_cast<double>(longitude) * 0.0000001);
         new_value( header, 1, static_cast<double>(latitude) * 0.0000001);
         new_value( header, 2, static_cast<double>(accuracy) / 1000.0);
-
     }
 
     template<typename iterator>
@@ -287,7 +286,8 @@ private:
             else
             {
                 // print all values, in the order determined by the header array.
-                output << static_cast<double>(silent_until - first_timestamp - reporting_period)/100;
+                const auto reported_time = reporting_period == 0? last_timestamp - first_timestamp : (silent_until - first_timestamp - reporting_period);
+                output << static_cast<double>(reported_time)/100;
                 for ( const auto &header : headers)
                 {
                     output << separator << header.second->second;

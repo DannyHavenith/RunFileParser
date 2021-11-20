@@ -35,6 +35,28 @@ namespace bytes_to_numbers
         }
     };
 
+    template< std::size_t size, typename T, typename iterator>
+    struct little_endian_extractor
+    {
+        static T extract( iterator &begin)
+        {
+            // note: this relies on the extract function to increase the iterator.
+
+            T result = (*begin++ & 0xff);
+            return result | little_endian_extractor< size -1, T, iterator>::extract( begin) << 8;
+        }
+    };
+
+    template< typename T, typename iterator>
+    struct little_endian_extractor< 1, T, iterator>
+    {
+        static T extract( iterator &begin)
+        {
+            return (unsigned char)*begin++;
+        }
+    };
+
+
     template< typename T, typename iterator>
     T get_big_endian( iterator begin)
     {
@@ -45,6 +67,12 @@ namespace bytes_to_numbers
     unsigned int get_big_endian_u3( iterator begin)
     {
         return big_endian_extractor< 3, unsigned int, iterator>::extract( begin);
+    }
+
+    template< typename T, typename iterator>
+    T get_little_endian( iterator begin)
+    {
+        return little_endian_extractor< sizeof( T), T, iterator>::extract( begin);
     }
 }
 

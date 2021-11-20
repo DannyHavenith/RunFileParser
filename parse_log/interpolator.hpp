@@ -14,6 +14,8 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <numeric> // for std::accumulate
+
 
 /**
  * Message handler that makes sure that there is a minimum frequency of
@@ -28,79 +30,187 @@ class interpolator : public rtlogs::messages_definition
 {
 public:
 
+    using timestamp_t = std::uint32_t;
+    using value_t = std::int16_t;
+    using channel_t = unsigned char;
+
     interpolator(
         output_handler &output,
-        std::set<int> channels)
+        channel_t channel)
 
     :   output{output},
-        channels{channels},
-        last_timestamp{}
+        channel{channel}
     {
 
     }
 
+    ~interpolator()
+    {
+        flush();
+    }
+
     /**
-     * In general send all messages straight to the output.
+     * store unhandled messages in the buffer
      */
     template< typename message, typename iterator>
     void handle( message, iterator begin, iterator end)
     {
-        output.handle( message{}, begin, end);
+        store( begin, end);
     }
 
+    /**
+     * Make a note of the last time stamp encountered.
+     */
     template< typename iterator>
     void handle( timestamp, iterator begin, iterator end)
     {
         auto time = bytes_to_numbers::get_big_endian_u3( std::next(begin));
-        insert_if_needed();
         last_timestamp = time;
-        output.handle( timestamp{}, begin, end);
+        store( begin, end);
     }
 
+    /**
+     * When encountering a value that needs interpolating,
+     * flush the buffer, inserting interpolated values while doing so.
+     */
     template< typename iterator>
     void handle( external_auxiliary, iterator begin, iterator end)
     {
         const unsigned short index = *std::next( begin);
 
-        if (channels.count( index) != 0)
+        if (channel != index)
         {
-            last_value[index].assign( begin, end);
-            timestamps[index] = last_timestamp;
+            store( begin, end);
         }
-        output.handle( external_auxiliary{}, begin, end);
+        else
+        {
+            const auto new_value = bytes_to_numbers::get_little_endian<std::int16_t>(std::next( begin, 2));
+
+            // if this is the first value we see, just flush the buffer.
+            if (last_timestamp_with_value == 0)
+            {
+                flush();
+            }
+            else
+            {
+                injector i{ output, channel, last_timestamp_with_value, last_value, last_timestamp, new_value};
+                rtlogs::scan_log( i, std::begin(buffer), std::end(buffer));
+            }
+
+            buffer.clear();
+
+            last_timestamp_with_value = last_timestamp;
+            last_value = new_value;
+
+            output.handle( external_auxiliary{}, begin, end);
+        }
     }
+
 
 private:
+
+
     using buffer_type = std::vector<unsigned char>;
 
-    template< typename iterator>
-    void emit( iterator begin, iterator end)
-    {
-        rtlogs::scan_log( output, begin, end);
-    }
-
     /**
-     * If we haven't emitted values for our channels yet this timestamp and we have some previous
-     * value, repeat that value.
+     * Send all data in the buffer to the output and clear the buffer.
      */
-    void insert_if_needed()
+    void flush()
     {
-        for ( const auto channel : channels)
-        {
-            if ( 0 < timestamps[channel] and timestamps[channel] < last_timestamp)
-            {
-                const auto &value = last_value[channel];
-                emit( value.begin(), value.end());
-                timestamps[channel] = last_timestamp; // not strictly necessary, but eases reasoning about invariants.
-            }
-        }
+        rtlogs::scan_log( output, begin(buffer), end(buffer));
+        buffer.clear();
     }
 
+    template< typename iterator>
+    void store( iterator begin, iterator end)
+    {
+        buffer.insert( std::end(buffer), begin, end);
+    }
+
+    buffer_type buffer;
     output_handler &output;
-    std::set<int> channels;
-    unsigned int last_timestamp;
-    std::map< int, buffer_type> last_value;
-    std::map< int, unsigned int> timestamps;
+    channel_t channel;
+    std::int16_t last_value{};
+    unsigned int last_timestamp{};
+    unsigned int last_timestamp_with_value{};
+
+
+    class injector : public rtlogs::messages_definition
+    {
+    public:
+        injector(
+            output_handler &output,
+            channel_t channel,
+            timestamp_t first_value_time,
+            value_t first_value,
+            timestamp_t last_value_time,
+            value_t last_value,
+            timestamp_t time_increment = 1)
+        : output{output},
+          channel{channel},
+          first_value_time{first_value_time},
+          last_value_time{last_value_time},
+          next_emit_time{first_value_time + time_increment},
+          time_increment{time_increment},
+          first_value{first_value},
+          last_value{last_value}
+        {
+        }
+
+        /**
+         * regular messages get sent straight to the output.
+         */
+        template< typename message, typename iterator>
+        void handle( message, iterator begin, iterator end)
+        {
+            output.handle( message{}, begin, end);
+        }
+
+        /**
+         * When outputting a time stamp message, first inject an interpolated value
+         *
+         */
+        template< typename iterator>
+        void handle( timestamp, iterator begin, iterator end)
+        {
+            const auto time = bytes_to_numbers::get_big_endian_u3( std::next( begin));
+            if (time > next_emit_time)
+            {
+                emit( std::int64_t(last_value - first_value) * (last_seen_timestamp - first_value_time) / (last_value_time - first_value_time) + first_value);
+            }
+            last_seen_timestamp = time;
+            output.handle( timestamp{}, begin, end);
+        }
+
+    private:
+
+        /*
+         * Emit an extra External Auxiliary message with an interpolated value
+         */
+        void emit( value_t interpolated_value)
+        {
+            unsigned char buffer[] = {
+                    74,
+                    channel,
+                    static_cast<unsigned char>(interpolated_value & 0xff),
+                    static_cast<unsigned char>(interpolated_value >> 8),
+                    0};
+            buffer[4] = std::accumulate( std::begin(buffer), std::prev( std::end(buffer)), 0);
+
+            rtlogs::scan_log( output, std::begin( buffer), std::end(buffer));
+        }
+
+        output_handler &output;
+        channel_t channel;
+        timestamp_t first_value_time;
+        timestamp_t last_value_time;
+        timestamp_t next_emit_time;
+        timestamp_t time_increment;
+        timestamp_t last_seen_timestamp{};
+        value_t first_value;
+        value_t last_value;
+    };
+
 };
 
 

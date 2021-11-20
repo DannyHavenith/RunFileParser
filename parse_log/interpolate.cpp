@@ -39,7 +39,7 @@ protected:
         const buffer_type buffer{ iterator{input_file}, iterator{}};
 
         binary_file_writer writer{ output_file};
-        interpolator<binary_file_writer> interpolator{ writer, {35, 36, 37}};
+        interpolator<binary_file_writer> interpolator{ writer, 37};
 
         scan_log( interpolator, begin( buffer), end(buffer));
     }
