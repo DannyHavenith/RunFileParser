@@ -20,10 +20,11 @@
 /**
  * Message handler that makes sure that there is a minimum frequency of
  * aux messages for a given channel. If no message is present at the required time,
- * a message will be injected with an interpolated message
+ * a message will be injected with an interpolated value
  *
- * messages will only be injected before the last message in the actual data, so if the input
- * stream ends with a long sequence of non aux messages, there will be no injected messages in that stream.
+ * messages will only be injected after the first aux message and before the last message
+ * in the actual data, so if for instance the input stream ends with a long sequence of
+ * non aux messages, there will be no injected messages in that tail of the stream.
  */
 template< typename output_handler>
 class interpolator : public rtlogs::messages_definition
@@ -37,7 +38,6 @@ public:
     interpolator(
         output_handler &output,
         channel_t channel)
-
     :   output{output},
         channel{channel}
     {
@@ -135,6 +135,12 @@ private:
     unsigned int last_timestamp_with_value{};
 
 
+    /**
+     * Class that injects interpolated values in a stream.
+     *
+     * Objects of this type are used to parse the stream between two
+     * value messages.
+     */
     class injector : public rtlogs::messages_definition
     {
     public:
