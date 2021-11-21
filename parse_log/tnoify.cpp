@@ -20,6 +20,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/regex.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 
 #include <iostream>
 #include <vector>
@@ -74,7 +75,7 @@ protected:
 
     path invent_target_name( const path &source) override
     {
-        if (extension( source) == ".run")
+        if (to_lower_copy( extension( source)) == ".run")
         {
             return source.parent_path() / path( source.stem().string() + "_.csv");
         }
