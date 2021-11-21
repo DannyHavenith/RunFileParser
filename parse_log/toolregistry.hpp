@@ -43,4 +43,8 @@ private:
 };
 
 } /* namespace rtlogs */
+
+template <typename Tool>
+void register_tool();
+
 #endif /* TOOLREGISTRY_HPP_ */

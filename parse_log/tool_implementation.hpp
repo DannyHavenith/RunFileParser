@@ -311,16 +311,6 @@ private:
     const std::string prefix;
 
 };
-
-class tool_registrar
-{
-public:
-    tool_registrar( tool *new_tool)
-    {
-        tool_registry::instance().register_tool( new_tool);
-    }
-};
-
 }
 
 

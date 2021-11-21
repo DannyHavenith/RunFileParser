@@ -13,6 +13,7 @@
 #include "gps_time_printer.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
+#include "register_tool.hpp"
 
 #include <iostream>
 
@@ -27,9 +28,9 @@ struct gps_timestamp_printer_tool : public rtlogs::single_file_tool
         gps_timestamp_printer printer(std::cout, std::cerr, filename);
         scan_log( printer, buffer.begin(), buffer.end());
     }
-} gps_timestamp_printer_tool_instance;
+};
 
-rtlogs::tool_registrar gps_timestamp_printer_tool_registrar( &gps_timestamp_printer_tool_instance);
+template void register_tool<gps_timestamp_printer_tool>();
 
 
 

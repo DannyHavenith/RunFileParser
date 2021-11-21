@@ -13,9 +13,11 @@
 #include "kml_writer.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
+#include "register_tool.hpp"
 
 #include <iostream>
 
+#include "toolregistry.hpp"
 
 struct kml_writer_tool : public rtlogs::single_file_tool
 {
@@ -28,8 +30,9 @@ struct kml_writer_tool : public rtlogs::single_file_tool
         kml_writer printer(std::cout);
         scan_log( printer, buffer.begin(), buffer.end());
     }
-} kml_writer_tool_instance;
+};
 
-rtlogs::tool_registrar kml_writer_tool_registrar( &kml_writer_tool_instance);
+template void register_tool<kml_writer_tool>();
+
 
 

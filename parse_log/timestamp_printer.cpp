@@ -13,11 +13,13 @@
 #include "timestamp_printer.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
+#include "register_tool.hpp"
 
 #include <iostream>
 
-struct timestamp_printer_tool : public rtlogs::single_file_tool
+class timestamp_printer_tool : public rtlogs::single_file_tool
 {
+public:
     timestamp_printer_tool()
             :single_file_tool( "timestamps") {};
 
@@ -29,8 +31,8 @@ struct timestamp_printer_tool : public rtlogs::single_file_tool
         // cleanup
         printer.flush();
     }
-} timestamp_printer_tool_instance;
+};
 
-rtlogs::tool_registrar timestamp_printer_tool_registrar( &timestamp_printer_tool_instance);
+template void register_tool<timestamp_printer_tool>();
 
 

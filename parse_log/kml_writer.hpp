@@ -16,6 +16,8 @@
 #include "messages.hpp"
 #include <boost/cstdint.hpp>
 
+class kml_writer_tool;
+
 /**
  * This class handles gps_position messages only and will output a kml (google earth-) formatted
  * text containing a single trace of those gps_position messages.

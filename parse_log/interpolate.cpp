@@ -5,47 +5,37 @@
 //  accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
 //
+#include "interpolate.hpp"
+
 #include "tool_implementation.hpp"
 #include "binary_file_writer.hpp"
 #include "interpolator.hpp"
 #include "logscanner.hpp"
+#include "register_tool.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 
 #include <iterator>
 
+
 using std::istreambuf_iterator;
 
-
-struct interpolate : public rtlogs::input_output_tool
+void interpolate::run_on_file( const path &from, const path &to)
 {
-public:
-    interpolate()
-    : input_output_tool{ "interpolate", "interpolated_"}
-    {}
+    boost::filesystem::ifstream input_file(from, std::ios::binary);
+    boost::filesystem::ofstream output_file(to, std::ios::binary);
 
-protected:
-    void run_on_file( const path &from, const path &to) override
-    {
-        boost::filesystem::ifstream input_file( from, std::ios::binary);
-        boost::filesystem::ofstream output_file( to, std::ios::binary);
+    // load the complete file into memory
+    using iterator = std::istreambuf_iterator<char>;
+    using buffer_type = std::vector<unsigned char>;
+    const buffer_type buffer{ iterator{input_file}, iterator{}};
 
-        using iterator = std::istreambuf_iterator<char>;
-        using buffer_type = std::vector<unsigned char>;
+    binary_file_writer writer{output_file};
+    interpolator<binary_file_writer> interpolator{ writer, 37};
+    scan_log(interpolator, begin(buffer), end(buffer));
+}
 
-        // load the complete file into memory
-
-        const buffer_type buffer{ iterator{input_file}, iterator{}};
-
-        binary_file_writer writer{ output_file};
-        interpolator<binary_file_writer> interpolator{ writer, 37};
-
-        scan_log( interpolator, begin( buffer), end(buffer));
-    }
-};
-
-interpolate interpolate_tool_instance;
-rtlogs::tool_registrar interpolate_tool_registrar( &interpolate_tool_instance);
+template void register_tool<interpolate>();
 
 

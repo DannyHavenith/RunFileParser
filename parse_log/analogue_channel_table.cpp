@@ -13,6 +13,7 @@
 #include "analogue_channel_table.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
+#include "register_tool.hpp"
 
 #include <iostream>
 
@@ -29,9 +30,6 @@ struct analogue_channel_table_tool : public rtlogs::single_file_tool
         scan_log( table, buffer.begin(), buffer.end());
     }
 
-} analogue_channel_table_tool_instance;
+};
 
-rtlogs::tool_registrar analogue_channel_table_tool_registrar( &analogue_channel_table_tool_instance);
-
-
-
+template void register_tool<analogue_channel_table_tool>();

@@ -42,6 +42,8 @@ add_executable(
     data_at_event.cpp
     message_names.cpp
     interpolate.cpp
+    
+    register_all_tools.cpp
 	)
 
 target_link_libraries(

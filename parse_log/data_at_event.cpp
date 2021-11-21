@@ -13,6 +13,7 @@
 #include "data_at_event.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
+#include "register_tool.hpp"
 
 #include <iostream>
 
@@ -34,6 +35,6 @@ struct data_at_event_tool : public rtlogs::single_file_tool
         emit_header = false;
     }
 
-} data_at_event_tool_instance;
+};
 
-rtlogs::tool_registrar event_position_tool_registrar( &data_at_event_tool_instance);
+template void register_tool<data_at_event_tool>();

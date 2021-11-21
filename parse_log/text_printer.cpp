@@ -12,6 +12,7 @@
 #include "text_printer.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
+#include "register_tool.hpp"
 
 #include <iostream>
 
@@ -29,7 +30,7 @@ struct text_printer_tool : public rtlogs::single_file_tool
     }
 } text_printer_tool_instance;
 
-rtlogs::tool_registrar text_printer_tool_registrar( &text_printer_tool_instance);
+template void register_tool<text_printer_tool>();
 
 
 

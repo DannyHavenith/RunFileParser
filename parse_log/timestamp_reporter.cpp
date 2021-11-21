@@ -13,6 +13,7 @@
 #include "timestamp_reporter.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
+#include "register_tool.hpp"
 
 #include <iostream>
 
@@ -32,10 +33,9 @@ struct timestamp_reporter_tool : public rtlogs::single_file_tool
             cerr << "no gps timestamps in " << filename << '\n';
         }
     }
-} timestamp_reporter_tool_instance;
+};
 
-rtlogs::tool_registrar timestamp_reporter_tool_registrar( &timestamp_reporter_tool_instance);
-
+template void register_tool<timestamp_reporter_tool>();
 
 
 

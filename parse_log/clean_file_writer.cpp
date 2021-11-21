@@ -13,6 +13,7 @@
 #include "clean_file_writer.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
+#include "register_tool.hpp"
 
 struct clean_file_writer_tool : public rtlogs::single_file_tool
 {
@@ -24,9 +25,9 @@ struct clean_file_writer_tool : public rtlogs::single_file_tool
         clean_file_writer writer( filename);
         scan_log( writer, buffer.begin(), buffer.end());
     }
-} clean_file_writer_tool_instance;
+};
 
-rtlogs::tool_registrar clean_file_writer_tool_registrar( &clean_file_writer_tool_instance);
+template void register_tool<clean_file_writer_tool>();
 
 
 

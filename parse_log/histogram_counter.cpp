@@ -12,6 +12,7 @@
 #include "histogram_counter.hpp"
 #include "tool_implementation.hpp"
 #include "logscanner.hpp"
+#include "register_tool.hpp"
 
 #include <iostream>
 
@@ -27,6 +28,6 @@ struct histogram_counter_tool : public rtlogs::single_file_tool
         counter.output( std::cout);
     }
 
-} histogram_counter_tool_instance;
+};
 
-rtlogs::tool_registrar histogram_counter_tool_registrar( &histogram_counter_tool_instance);
+template void register_tool<histogram_counter_tool>();

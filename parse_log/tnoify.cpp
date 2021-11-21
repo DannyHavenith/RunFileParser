@@ -15,6 +15,7 @@
 #include "logscanner.hpp"
 #include "analogue_channel_table.hpp"
 #include "island_removal.hpp"
+#include "register_tool.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -176,10 +177,9 @@ private:
     analogue_channel_table::column_info columns;
     double interval; // logging interval
 
-} tnoify_tool_instance;
+};
 
-rtlogs::tool_registrar tnoify_tool_registrar( &tnoify_tool_instance);
-
+template void register_tool<tnoify_tool>();
 
 
 

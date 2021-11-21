@@ -15,7 +15,7 @@
 #include <string>
 #include <iostream>
 #include <exception>
-
+#include "register_all_tools.hpp"
 
 void error( const std::string &what)
 {
@@ -26,6 +26,8 @@ int main(int argc, char* argv[])
 {
     using namespace std;
     using namespace rtlogs;
+
+    register_all_tools();
 
     try
     {

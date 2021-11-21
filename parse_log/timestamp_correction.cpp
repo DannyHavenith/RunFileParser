@@ -15,6 +15,7 @@
 #include "logscanner.hpp"
 #include "island_removal.hpp"
 #include "binary_file_writer.hpp"
+#include "register_tool.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -55,7 +56,7 @@ protected:
         scan_log( remover, buffer.begin(), buffer.end());
     }
 
-} timestamp_correction_tool_instance;
+};
 
-rtlogs::tool_registrar timestamp_correction_tool_registrar( &timestamp_correction_tool_instance);
+template void register_tool<timestamp_correction_tool>();
 
