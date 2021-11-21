@@ -17,6 +17,7 @@
 #include "messages.hpp"
 #include "bytes_to_numbers.hpp"
 #include "message_names.hpp"
+#include "csv_columns.hpp"
 
 #include <map>
 #include <algorithm>
@@ -48,8 +49,6 @@ class analogue_channel_table : public rtlogs::messages_definition
 {
 public:
 
-    typedef std::pair<unsigned short, unsigned short>       channel_index;
-    using column_info = std::vector<std::pair<channel_index, std::string> >;
 
     analogue_channel_table( std::ostream& output,
             double reporting_period_in_seconds = 0.0) :

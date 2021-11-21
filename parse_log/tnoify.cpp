@@ -16,10 +16,9 @@
 #include "analogue_channel_table.hpp"
 #include "island_removal.hpp"
 #include "register_tool.hpp"
+#include "csv_columns.hpp"
 
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/regex.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 
 #include <iostream>
@@ -29,8 +28,6 @@
 
 using namespace std;
 using namespace timestamp_correction;
-using namespace boost::filesystem;
-using namespace boost;
 
 template<typename CharType>
 class punctuation_facet : public std::numpunct<CharType>
@@ -75,6 +72,8 @@ protected:
 
     path invent_target_name( const path &source) override
     {
+        using boost::algorithm::to_lower_copy;
+
         if (to_lower_copy( extension( source)) == ".run")
         {
             return source.parent_path() / path( source.stem().string() + "_.csv");
@@ -93,7 +92,7 @@ protected:
             throw std::runtime_error( "This tool needs a column definition file. Use the -f command line switch.");
         }
 
-        read_column_file( settingsfile);
+        columns = read_column_file( settingsfile);
         get_option( "p", interval, 10.0);
 
     }
@@ -154,28 +153,8 @@ protected:
     }
 
 private:
-    void read_column_file( const path &p)
-    {
-        columns.clear();
-        boost::filesystem::ifstream input_file( p);
-        if (!input_file) throw std::runtime_error( "could not open column definition file: " + p.string());
-        static const regex line( R"((\d+):(\d+)\s*=\s*(.*)\s*)");
 
-        string buffer;
-        while ( std::getline( input_file, buffer))
-        {
-            smatch match;
-            if (regex_match( buffer, match, line))
-            {
-                // the first two numbers are the channel and channel-index.
-                analogue_channel_table::channel_index key( lexical_cast<unsigned short>( match[1]),lexical_cast<unsigned short>( match[2]));
-                columns.push_back( std::make_pair( key, match[3]));
-            }
-        }
-
-    }
-
-    analogue_channel_table::column_info columns;
+    column_info columns;
     double interval; // logging interval
 
 };

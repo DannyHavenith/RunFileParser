@@ -44,6 +44,7 @@ add_executable(
     interpolate.cpp
     
     register_all_tools.cpp
+    csv_columns.cpp
 	)
 
 target_link_libraries(
