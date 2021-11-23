@@ -34,7 +34,7 @@ conan_cmake_run(
     CMAKE_TARGETS # individual targets to link to
     BUILD
         missing
-    BUILD_TYPE Release
+    BUILD_TYPE Debug
     ${EXTRA_PROFILE}
 )
 
@@ -43,6 +43,6 @@ add_library(project_options INTERFACE)
 target_compile_features(
     project_options 
     INTERFACE 
-        cxx_std_17)
+        cxx_std_20)
 
 add_subdirectory (parse_log)

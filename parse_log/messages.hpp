@@ -34,13 +34,13 @@ struct messages_definition
     struct logger_storage   : message<6, 6>     { static const char *description() { return  "Logger Storage";}};
     struct gps_time_storage : message<7, 6>     { static const char *description() { return  "GPS Time Storage";}};
     struct accelerations    : message<8, 6>     { static const char *description() { return  "Accelerations";}};
-    struct timestamp        : detailed_message< 9, unsigned_<3> >     { static const char *description() { return  "Time Stamp";}};
+    struct timestamp        : detailed_message< 9, fixed_point<unsigned_<3, big_endian>, 100> >     { static const char *description() { return  "Time Stamp";}};
     struct gps_position     : message<10, 14>   { static const char *description() { return  "GPS Positional Data";}};
     struct gps_raw_speed    : message<11, 10>   { static const char *description() { return  "GPS Raw Speed Data";}};
     struct beacon_pulse_present : message<12, 3>{ static const char *description() { return  "Beacon Pulse Present";}};
     struct frequency       : message_range<14, 19, 5>    { static const char *description() { return  "Frequency";}};
     struct serial_data_input: message<19, var>   { static const char *description() { return  "Serial Data Input";}};
-    struct analogue        : message_range<20,52, 4>    { static const char *description() { return  "Analogue";}};
+    struct analogue        : detailed_message_range<20,52, fixed_point<unsigned_<2, big_endian>, 1000>>    { static const char *description() { return  "Analogue";}};
     struct channel_data     : message<52, 67>   { static const char *description() { return  "Channel Data";}};
     struct display_data     : message<53, 11>   { static const char *description() { return  "Display Data";}};
     struct reflash          : message<54, 6>    { static const char *description() { return  "Reflash";}};
@@ -60,7 +60,7 @@ struct messages_definition
     struct auxiliary_input  : message<71, 3>    { static const char *description() { return  "Auxiliary Input Module Number";}};
     struct external_temperature : message<72, 5>{ static const char *description() { return  "External Temperature";}};
     struct external_frequency: message<73, 5>   { static const char *description() { return  "External Frequency";}};
-    struct external_auxiliary: message<74, 5> { static const char *description() { return  "External Auxiliary";}};
+    struct external_auxiliary: detailed_message<74, channel_id, fixed_point<unsigned_<2, little_endian>, 10>> { static const char *description() { return  "External Auxiliary";}};
     struct external_time    : message<75, 6>    { static const char *description() { return  "External Time";}};
     struct new_lcd_data     : message<76, 24>   { static const char *description() { return  "New LCD Data";}};
     struct new_led_data     : message<77, 3>    { static const char *description() { return  "New LED Data";}};

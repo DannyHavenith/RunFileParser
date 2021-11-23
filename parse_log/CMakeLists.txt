@@ -45,6 +45,7 @@ add_executable(
     
     register_all_tools.cpp
     csv_columns.cpp
+    csv_to_run.cpp
 	)
 
 target_link_libraries(

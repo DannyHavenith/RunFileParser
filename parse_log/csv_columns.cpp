@@ -13,15 +13,22 @@
 #include <string>
 #include <stdexcept>
 
+/**
+ * Read a text file that descripes the relation between column
+ * names in a csv file and the channels in a run file. This can be
+ * used both for csv input and output.
+ */
 column_info read_column_file( const boost::filesystem::path &p)
 {
     column_info columns;
+
     boost::filesystem::ifstream input_file( p);
     if (!input_file)
     {
         throw std::runtime_error(
                 "could not open column definition file: " + p.string());
     }
+
     static const boost::regex line( R"((\d+):(\d+)\s*=\s*(.*)\s*)");
     std::string buffer;
     while (std::getline( input_file, buffer))

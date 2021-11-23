@@ -21,6 +21,7 @@ class interpolate;
 class histogram_counter_tool;
 class clean_file_writer_tool;
 class analogue_channel_table_tool;
+class csv_to_run_tool;
 
 void register_all_tools()
 {
@@ -35,5 +36,6 @@ void register_all_tools()
     register_tool<histogram_counter_tool>();
     register_tool<clean_file_writer_tool>();
     register_tool<analogue_channel_table_tool>();
+    register_tool<csv_to_run_tool>();
 }
 

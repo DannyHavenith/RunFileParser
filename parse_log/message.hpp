@@ -14,7 +14,6 @@
 #define MESSAGE_HPP_
 
 #include <boost/mpl/vector.hpp>
-#include <boost/mpl/if.hpp>
 #include <boost/mpl/bool.hpp>
 
 #include <boost/type_traits/is_same.hpp>
@@ -62,18 +61,59 @@ namespace rtlogs
         static const int size = 0;
     };
 
-    template< int bytes>
+    struct big_endian {};
+    struct little_endian {};
+
+    /**
+     * This represents a channel id in the message, such as the one used for
+     * Auxiliary channel messages.
+     */
+    struct channel_id
+    {
+        static constexpr int size = 1;
+        using value_type = unsigned int;
+        using cooked_value_type = value_type;
+        using byte_order = little_endian;
+        using raw_type_inf = channel_id;
+    };
+
+    /**
+     * This represents an unsigned integer in the message.
+     */
+    template< unsigned int bytes, typename order = little_endian>
     struct unsigned_
     {
         static const int size = bytes;
         using value_type = unsigned long;
+        using cooked_value_type = value_type;
+        using byte_order = order;
+        using raw_type_info = unsigned_<bytes, order>;
     };
 
-    template<int bytes>
+    /**
+     * This represents a signed integer in the message
+     */
+    template<unsigned int bytes, typename order = little_endian>
     struct signed_
     {
         static const int size = bytes;
         using value_type = long;
+        using cooked_value_type = value_type;
+        using byte_order = order;
+        using raw_type_info = signed_<bytes, order>;
+    };
+
+    /**
+     * This represents a fixed point type in the message.
+     *
+     * fixed point numbers are represented by some integer in the
+     * message divided by some constant.
+     */
+    template< typename int_type, unsigned int denom>
+    struct fixed_point : public int_type
+    {
+        using cooked_value_type = double;
+        constexpr static int denominator = denom;
     };
 
     template< typename T>
@@ -82,11 +122,24 @@ namespace rtlogs
         static const int value = T::size;
     };
 
+    template< typename typeinfo>
+    struct cooked_value_type
+    {
+        using type = typename typeinfo::cooked_value_type;
+    };
+
+
     /// a message with fully specified payload types.
     template <int header, typename type1 = nothing, typename type2 = nothing, typename type3 = nothing>
     struct detailed_message : public message< header, size<type1>::value + size<type2>::value + size<type3>::value + 2>
     {
-        using parts = typename mpl::if_<boost::is_same<type1, nothing>, mpl::vector<>, typename mpl::if_<boost::is_same<type2, nothing>, mpl::vector<type1>, typename mpl::if_<boost::is_same<type3, nothing>, mpl::vector<type1, type2>, mpl::vector<type1, type2, type3> >::type>::type>::type;
+        using parts = mpl::vector< type1, type2, type3>;
+    };
+
+    template< int code_begin, int code_end, typename type1 = nothing, typename type2 = nothing, typename type3 = nothing>
+    struct detailed_message_range : public message_range< code_begin, code_end, size<type1>::value + size<type2>::value + size<type3>::value + 2>
+    {
+        using parts = mpl::vector< type1, type2, type3>;
     };
 
 }
