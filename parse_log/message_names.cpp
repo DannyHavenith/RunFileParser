@@ -49,6 +49,7 @@ namespace
     StringTable make_message_name_table()
     {
         StringTable names(256);
+        names[0] = "Error";
         boost::fusion::for_each(
             rtlogs::messages_definition::list{},
             description_writer{ names}

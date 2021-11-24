@@ -21,8 +21,8 @@ struct histogram_counter : public rtlogs::messages_definition
 {
     histogram_counter( )
     {
-        std::fill( byte_count, byte_count+ (sizeof byte_count/sizeof byte_count[0]), 0);
-        std::fill( message_count, message_count+ (sizeof message_count/sizeof message_count[0]), 0);
+        std::fill( std::begin(byte_count), std::end(byte_count), 0);
+        std::fill( std::begin(message_count), std::end(message_count), 0);
     }
 
     template<typename iterator>
@@ -41,6 +41,7 @@ struct histogram_counter : public rtlogs::messages_definition
 
     void output( std::ostream &out)
     {
+        out << "message name\tchannel\tcount\tbytes\n";
         for (int i = 0; i < 256;++i)
         {
             if (message_count[i])
