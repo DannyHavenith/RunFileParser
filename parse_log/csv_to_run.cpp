@@ -28,6 +28,20 @@ public:
 
 
 protected:
+    path invent_target_name( const path &source) override
+    {
+        using boost::algorithm::to_lower_copy;
+
+        if (to_lower_copy( extension( source)) == ".csv")
+        {
+            return source.parent_path() / path( source.stem().string() + ".RUN");
+        }
+        else
+        {
+            return input_output_tool::invent_target_name( source);
+        }
+    }
+
     void run_on_file(const boost::filesystem::path &from , const boost::filesystem::path &to ) override
     {
         using namespace boost::filesystem;

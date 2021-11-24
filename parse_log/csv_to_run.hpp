@@ -85,8 +85,6 @@ public:
         }
     }
 
-
-
 private:
     using handler_type = std::function< void ( output_type &, const csv::record &)>;
     using handlers_type = std::vector< handler_type>;
