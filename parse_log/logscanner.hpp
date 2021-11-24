@@ -56,18 +56,31 @@ namespace rtlogs
         {
             while (begin != end)
             {
-                // this depends on the handler to increase the begin-iterator if a message was recognized and to _not_ change the begin iterator
-                // in case of failure.
-                if (!table[(unsigned char)*begin]->handle( reactor, begin, begin, end))
-                {
-                    iterator start_of_garbage = begin;
-                    ++begin;
-                    while ( begin != end && !table[(unsigned char)*begin]->handle( reactor, start_of_garbage, begin, end))
-                    {
-                        ++begin;
-                    }
-                }
+                begin = scan_single_message(  reactor, begin, end);
             }
+        }
+
+        /**
+         * Try to parse a single message in the range [begin, end> and send the first valid message that is found
+         * to the reactor. Any bytes that were skipped because of checksum errors will be sent as a single
+         * parse_error message to the reactor.
+         *
+         * this function returns an iterator that is one past the parsed message
+         */
+        iterator scan_single_message(
+            reactor_type &reactor,
+            iterator begin,
+            iterator end)
+        {
+            // this depends on the handler to increase the begin-iterator if a message was recognized and to _not_ change the begin iterator
+            // in case of failure.
+            iterator start_of_garbage = begin;
+            while (begin != end and not table[(unsigned char) (*begin)]->handle( reactor, start_of_garbage, begin, end))
+            {
+                ++begin;
+            }
+
+            return begin;
         }
 
 
