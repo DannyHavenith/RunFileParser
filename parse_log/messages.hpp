@@ -58,7 +58,7 @@ struct messages_definition
     struct new_target_sector_time : message<69, 42> { static const char *description() { return  "New Target Sector Time";}};
     struct new_target_marker_time : message<70, 42> { static const char *description() { return  "New Target Marker Time";}};
     struct auxiliary_input  : message<71, 3>    { static const char *description() { return  "Auxiliary Input Module Number";}};
-    struct external_temperature : message<72, 5>{ static const char *description() { return  "External Temperature";}};
+    struct external_temperature : detailed_message<72, channel_id, fixed_point< signed_<2, little_endian>, 10>>{ static const char *description() { return  "External Temperature";}};
     struct external_frequency: message<73, 5>   { static const char *description() { return  "External Frequency";}};
     struct external_auxiliary: detailed_message<74, channel_id, fixed_point<unsigned_<2, little_endian>, 10>> { static const char *description() { return  "External Auxiliary";}};
     struct external_time    : message<75, 6>    { static const char *description() { return  "External Time";}};
