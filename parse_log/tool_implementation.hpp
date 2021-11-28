@@ -136,7 +136,10 @@ struct input_output_tool : public tool_impl
         harvest_options( arguments);
         handle_options();
 
-        if (arguments.empty() ) return -1;
+        if (arguments.empty() )
+        {
+            throw_usage_error();
+        }
         if( arguments.size() == 1)
         {
             // one source, no target specified
