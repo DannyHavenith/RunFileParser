@@ -13,7 +13,7 @@
 #include "register_tool.hpp"
 #include "binary_file_writer.hpp"
 
-#include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem.hpp>
 
 #include <iostream>
 
