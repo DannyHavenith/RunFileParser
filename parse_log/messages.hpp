@@ -81,6 +81,8 @@ struct messages_definition
     struct external_misc    : message<95, 5>    { static const char *description() { return  "External Miscellaneous";}};
     struct time_into_current_lap : message<96, 10>  { static const char *description() { return  "Time in to current lap and sector";}};
     struct high_res_timer   : message<97, 8>    { static const char *description() { return  "High resolution event timer";}};
+    struct can_data         : message<98, var>  { static const char *description() { return  "CAN data";}};
+    struct user_defined     : detailed_message<99, channel_id, ignore<1>, float32>  { static const char *description() { return  "User defined";}};
     struct sector_definition: message<101, 19>  { static const char *description() { return  "Sector Definition";}};
     struct brakebox_to_pc   : message<102, var>  { static const char *description() { return  "BRAKEBOX to PC Communication";}};
     struct dvr_communication: message<103, 17>  { static const char *description() { return  "DVR Communication";}};
@@ -149,11 +151,13 @@ struct messages_definition
             external_pressure,
             external_misc   ,
             time_into_current_lap ,
-            high_res_timer  ,
-            sector_definition
+            high_res_timer
             > commands3;
 
     typedef boost::mpl::vector<
+            can_data,
+            user_defined,
+            sector_definition,
             brakebox_to_pc  ,
             dvr_communication,
             video_frame_index,

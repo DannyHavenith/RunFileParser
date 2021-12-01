@@ -103,6 +103,27 @@ namespace rtlogs
         using raw_type_info = signed_<bytes, order>;
     };
 
+    template< unsigned int bytes>
+    struct ignore
+    {
+        static const int size = bytes;
+        using value_type = void;
+        using cooked_value_type = value_type;
+        using raw_type_info = ignore<bytes>;
+    };
+
+    /**
+     * This represents a value in
+     * IEEE 754 single precision floating point format
+     */
+    struct float32
+    {
+        static const int size = 4;
+        using value_type = float;
+        using cooked_value_type = value_type;
+        using raw_type_info = float32;
+    };
+
     /**
      * This represents a fixed point type in the message.
      *

@@ -60,18 +60,31 @@ iterator write( rtlogs::signed_<size, rtlogs::little_endian>, long value, iterat
     return destination + size;
 }
 
-template< typename iterator>
-iterator write( rtlogs::nothing, long, iterator destination)
-{
-    return destination;
-}
-
 template< typename iterator, unsigned int size>
 iterator write( rtlogs::unsigned_<size, rtlogs::little_endian>, unsigned long value, iterator destination)
 {
     boost::endian::endian_store<unsigned long, size, boost::endian::order::little>( destination, value);
     return destination + size;
 }
+
+template< typename iterator>
+iterator write( rtlogs::float32, float value, iterator destination)
+{
+    static_assert( sizeof( value) == rtlogs::float32::size, "This implementation expects the native float type to match IEEE 754");
+
+    auto as_bytes = reinterpret_cast<unsigned char *>( &value);
+    std::copy( as_bytes, as_bytes + rtlogs::float32::size, destination);
+
+    return std::next( destination, rtlogs::float32::size);
+}
+
+template< typename iterator>
+iterator write( rtlogs::nothing, long, iterator destination)
+{
+    return destination;
+}
+
+
 
 /**
  * for fixed point values, we can translate the floating point
@@ -115,6 +128,15 @@ iterator encode( rtlogs::nothing, const context &c, const std::vector<std::strin
 {
     return destination;
 }
+
+template< typename iterator, unsigned int size>
+iterator encode( rtlogs::ignore<size>, const context &c, const std::vector<std::string> &values, iterator destination)
+{
+    using std::next;
+    std::fill( destination, next( destination, size), 0);
+    return next(destination, size);
+}
+
 
 /**
  * Write the channel id to the range of bytes pointed to by the iterator 'destination'.
